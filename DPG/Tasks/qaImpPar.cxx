@@ -86,13 +86,14 @@ struct QaImpactPar {
   Configurable<uint16_t> maxPVcontrib{"maxPVcontrib", 10000, "Maximum number of PV contributors"};
   Configurable<bool> removeDiamondConstraint{"removeDiamondConstraint", true, "Remove the diamond constraint for the PV refit"};
   Configurable<bool> keepAllTracksPVrefit{"keepAllTracksPVrefit", false, "Keep all tracks for PV refit (for debug)"};
+  Configurable<bool> use_manual_cuts{"use_manual_cuts", false, "Use custom ITS hitmap selection"};
   Configurable<bool> use_customITSHitMap{"use_customITSHitMap", false, "Use custom ITS hitmap selection"};
   Configurable<int> customITShitmap{"customITShitmap", 0, "Custom ITS hitmap (consider the binary representation)"};
   Configurable<int> n_customMinITShits{"n_customMinITShits", 0, "Minimum number of layers crossed by a track among those in \"customITShitmap\""};
   Configurable<bool> custom_forceITSTPCmatching{"custom_forceITSTPCmatching", false, "Consider or not only ITS-TPC macthed tracks when using custom ITS hitmap"};
 
   /// Custom cut selection objects
-  TrackSelection selector_ITShitmap;
+  TrackSelection manual_selector;
 
   /// Selections with Filter (from o2::framework::expressions)
   // Primary vertex |z_vtx|<XXX cm
@@ -169,6 +170,7 @@ struct QaImpactPar {
     /// Custom cut selection objects
     std::set<uint8_t> set_customITShitmap; // = {};
     if (use_customITSHitMap) {
+      /// custo ITS hitmap
       for (int index_ITSlayer = 0; index_ITSlayer < 7; index_ITSlayer++) {
         if ((customITShitmap & (1 << index_ITSlayer)) > 0) {
           set_customITShitmap.insert(static_cast<uint8_t>(index_ITSlayer));
@@ -183,7 +185,14 @@ struct QaImpactPar {
       }
       LOG(info) << "############";
 
-      selector_ITShitmap.SetRequireHitsInITSLayers(n_customMinITShits, set_customITShitmap);
+      manual_selector.SetRequireHitsInITSLayers(n_customMinITShits, set_customITShitmap);
+    }
+    if (use_manual_cuts) {
+      /// testing some cuts from 'isGlobalTrack' selection
+      manual_selector.SetTrackType(o2::aod::track::Track);
+      manual_selector.SetMinNCrossedRowsOverFindableClustersTPC(0.8f);
+      manual_selector.SetMinNCrossedRowsTPC(70);
+      manual_selector.SetMaxDcaXYPtDep([](float pt) { return 0.0105f + 0.0350f / pow(pt, 1.1f); });
     }
 
     // tracks
@@ -385,7 +394,7 @@ struct QaImpactPar {
       ///}
 
       /// apply custom ITS hitmap selections, if asked
-      if (use_customITSHitMap && !selector_ITShitmap.IsSelected(track, TrackSelection::TrackCuts::kITSHits)) {
+      if (use_customITSHitMap && !manual_selector.IsSelected(track, TrackSelection::TrackCuts::kITSHits)) {
         /// skip this track and go on, because it does not satisfy the ITS hit requirements
         continue;
       }
@@ -394,6 +403,18 @@ struct QaImpactPar {
         /// skip this track because it is not global (no matching ITS-TPC)
         continue;
       }
+      
+      /// further custom selections
+      if (use_manual_cuts) {
+         if( !manual_selector.IsSelected(track, TrackSelection::TrackCuts::kTrackType)
+          || !manual_selector.IsSelected(track, TrackSelection::TrackCuts::kTPCCrossedRowsOverNCls)
+          || !manual_selector.IsSelected(track, TrackSelection::TrackCuts::kTPCCrossedRows)
+          || !manual_selector.IsSelected(track, TrackSelection::TrackCuts::kDCAxy)
+         ) {
+          continue;
+         }
+      }
+
       int itsNhits = 0;
       for (unsigned int i = 0; i < 7; i++) {
         if (track.itsClusterMap() & (1 << i)) {
