@@ -109,10 +109,16 @@ struct TimestampTask {
     if (verbose.value) {
       LOGF(info, "Run-number to timestamp found! %i %llu ms", bc.runNumber(), runNumberTimeStamp);
     }
+    LOG(info) << "bc.globalBC() " << bc.globalBC();
+    LOG(info) << "initialOrbit " << initialOrbit;
     const uint16_t currentBC = isRun2MC ? initialBC : (bc.globalBC() % o2::constants::lhc::LHCMaxBunches);
     const uint32_t currentOrbit = isRun2MC ? initialOrbit : (bc.globalBC() / o2::constants::lhc::LHCMaxBunches);
     const InteractionRecord currentIR(currentBC, currentOrbit);
     timestampTable(runNumberTimeStamp + (currentIR - initialIR).bc2ns() * 1e-6);
+    LOG(info) << "runNumberTimeStamp " << runNumberTimeStamp;
+    LOG(info) << "currentIR.bc2ns() " << currentIR.bc2ns();
+    LOG(info) << "initialIR.bc2ns() " << initialIR.bc2ns(); 
+    LOG(info) << "(currentIR - initialIR).bc2ns() " << (currentIR - initialIR).bc2ns(); 
   }
 };
 
