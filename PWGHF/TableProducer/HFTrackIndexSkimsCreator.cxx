@@ -534,9 +534,28 @@ struct HfTagSelTracks {
     float impParZ = 1e10f;
     if (recalc_imppar) {
 
-      auto trackPar = getTrackPar(my_track);
-      o2::gpu::gpustd::array<float, 2> dcaInfo{-999., -999.};
-      if (o2::base::Propagator::Instance()->propagateToDCABxByBz({PVbase_recalculated.getX(), PVbase_recalculated.getY(), PVbase_recalculated.getZ()}, trackPar, 2.f, matCorr, &dcaInfo)) {
+      /// Track propagation to the PV refit considering also the material budget
+      /// Mandatory for tracks updated at most only to the innermost ITS layer
+      //auto trackPar = getTrackPar(my_track);
+      //o2::gpu::gpustd::array<float, 2> dcaInfo{-999., -999.};
+      //if (o2::base::Propagator::Instance()->propagateToDCABxByBz({PVbase_recalculated.getX(), PVbase_recalculated.getY(), PVbase_recalculated.getZ()}, trackPar, 2.f, matCorr, &dcaInfo)) {
+      //  pvrefitX = PVbase_recalculated.getX();
+      //  pvrefitY = PVbase_recalculated.getY();
+      //  pvrefitZ = PVbase_recalculated.getZ();
+      //  pvrefitSigmaX2 = PVbase_recalculated.getSigmaX2();
+      //  pvrefitSigmaXY = PVbase_recalculated.getSigmaXY();
+      //  pvrefitSigmaY2 = PVbase_recalculated.getSigmaY2();
+      //  pvrefitSigmaXZ = PVbase_recalculated.getSigmaXZ();
+      //  pvrefitSigmaYZ = PVbase_recalculated.getSigmaYZ();
+      //  pvrefitSigmaZ2 = PVbase_recalculated.getSigmaZ2();
+      //  impParRPhi = dcaInfo[0]; // [cm]
+      //  impParZ = dcaInfo[1];    // [cm]
+      //}
+
+      /// Track propagation to the PV refit done only ia geometrical way
+      /// Correct only if no further material budget is crossed, namely for tracks already propagated to the original PV
+      o2::dataformats::DCA impactParameter;
+      if (getTrackParCov(my_track).propagateToDCA(PVbase_recalculated, o2::base::Propagator::Instance()->getNominalBz(), &impactParameter)) {
         pvrefitX = PVbase_recalculated.getX();
         pvrefitY = PVbase_recalculated.getY();
         pvrefitZ = PVbase_recalculated.getZ();
@@ -546,8 +565,8 @@ struct HfTagSelTracks {
         pvrefitSigmaXZ = PVbase_recalculated.getSigmaXZ();
         pvrefitSigmaYZ = PVbase_recalculated.getSigmaYZ();
         pvrefitSigmaZ2 = PVbase_recalculated.getSigmaZ2();
-        impParRPhi = dcaInfo[0]; // [cm]
-        impParZ = dcaInfo[1];    // [cm]
+        impParRPhi = impactParameter.getY(); // [cm]
+        impParZ = impactParameter.getZ();    // [cm]
       }
     } else {
       /// return, so that default values are not touched
@@ -568,6 +587,10 @@ struct HfTagSelTracks {
     array_DCAxyDCAz[1] = impParZ;
     return;
   } /// end of process_PVrefit function
+
+  
+  /// Partition for PV contributors
+  Partition<MY_TYPE1> pvContributors = ((aod::track::flags & (uint32_t) aod::track::PVContributor) == (uint32_t) aod::track::PVContributor);
 
   void process(aod::Collisions const& collisions,
                MY_TYPE1 const& tracks,
@@ -632,10 +655,19 @@ struct HfTagSelTracks {
             oldCollID = track.collision().globalIndex();
           } else {
             /// not found, look for contributors
-            auto unf_tracks_per_coll = unfiltered_tracks.sliceBy(aod::track::collisionId, track.collision().globalIndex());
-            retrievePVContributors(vec_contrGlobID, vec_contrTrkParCov, (BigTracks const&)unf_tracks_per_coll, track.collision().globalIndex());
+            //auto unf_tracks_per_coll = unfiltered_tracks.sliceBy(aod::track::collisionId, track.collision().globalIndex());
+            //retrievePVContributors(vec_contrGlobID, vec_contrTrkParCov, (BigTracks const&)unf_tracks_per_coll, track.collision().globalIndex());
+            //if (debug) {
+            //  LOG(info) << "===> numContrib(): " << track.collision().numContrib() << ", vec_contrTrkParCov.size(): " << vec_contrTrkParCov.size();
+            //}
+            /// contributors for the current collision
+            auto pvContrCollision = pvContributors->sliceBy(aod::track::collisionId, track.collision().globalIndex());
+            for (auto contributor : pvContrCollision) {
+              vec_contrGlobID.push_back(contributor.globalIndex());
+              vec_contrTrkParCov.push_back(getTrackParCov(contributor));
+            }
             if (debug) {
-              LOG(info) << "===> numContrib(): " << track.collision().numContrib() << ", vec_contrTrkParCov.size(): " << vec_contrTrkParCov.size();
+              LOG(info) << "### vec_contrGlobID.size()=" << vec_contrGlobID.size() << ", vec_contrTrkParCov.size()=" << vec_contrTrkParCov.size() << ", N. original contributors=" << track.collision().numContrib();
             }
             if ((uint16_t)vec_contrTrkParCov.size() != track.collision().numContrib()) {
               LOG(info) << "!!! something wrong in the number of contributor tracks for PV fit !!! " << vec_contrTrkParCov.size() << " vs. " << track.collision().numContrib();
@@ -650,6 +682,16 @@ struct HfTagSelTracks {
             b_newColl = true;
             newCollID = track.collision().globalIndex();
           }
+
+          /// contributors for the current collision
+          //auto pvContrCollision = pvContributors->sliceBy(aod::track::collisionId, track.collision().globalIndex());
+          //for (auto contributor : pvContrCollision) {
+          //  vec_contrGlobID.push_back(contributor.globalIndex());
+          //  vec_contrTrkParCov.push_back(getTrackParCov(contributor));
+          //}
+          //if (debug) {
+          //  LOG(info) << "### vec_contrGlobID.size()=" << vec_contrGlobID.size() << ", vec_contrTrkParCov.size()=" << vec_contrTrkParCov.size() << ", N. original contributors=" << track.collision().numContrib();
+          //}
 
           /// Perform the PV refit only for tracks with an assigned collision
           if (debug) {
