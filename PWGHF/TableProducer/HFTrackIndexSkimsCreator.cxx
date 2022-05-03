@@ -534,9 +534,28 @@ struct HfTagSelTracks {
     float impParZ = 1e10f;
     if (recalc_imppar) {
 
-      auto trackPar = getTrackPar(my_track);
-      o2::gpu::gpustd::array<float, 2> dcaInfo{-999., -999.};
-      if (o2::base::Propagator::Instance()->propagateToDCABxByBz({PVbase_recalculated.getX(), PVbase_recalculated.getY(), PVbase_recalculated.getZ()}, trackPar, 2.f, matCorr, &dcaInfo)) {
+      /// Track propagation to the PV refit considering also the material budget
+      /// Mandatory for tracks updated at most only to the innermost ITS layer
+      //auto trackPar = getTrackPar(my_track);
+      //o2::gpu::gpustd::array<float, 2> dcaInfo{-999., -999.};
+      //if (o2::base::Propagator::Instance()->propagateToDCABxByBz({PVbase_recalculated.getX(), PVbase_recalculated.getY(), PVbase_recalculated.getZ()}, trackPar, 2.f, matCorr, &dcaInfo)) {
+      //  pvrefitX = PVbase_recalculated.getX();
+      //  pvrefitY = PVbase_recalculated.getY();
+      //  pvrefitZ = PVbase_recalculated.getZ();
+      //  pvrefitSigmaX2 = PVbase_recalculated.getSigmaX2();
+      //  pvrefitSigmaXY = PVbase_recalculated.getSigmaXY();
+      //  pvrefitSigmaY2 = PVbase_recalculated.getSigmaY2();
+      //  pvrefitSigmaXZ = PVbase_recalculated.getSigmaXZ();
+      //  pvrefitSigmaYZ = PVbase_recalculated.getSigmaYZ();
+      //  pvrefitSigmaZ2 = PVbase_recalculated.getSigmaZ2();
+      //  impParRPhi = dcaInfo[0]; // [cm]
+      //  impParZ = dcaInfo[1];    // [cm]
+      //}
+
+      /// Track propagation to the PV refit done only ia geometrical way
+      /// Correct only if no further material budget is crossed, namely for tracks already propagated to the original PV
+      o2::dataformats::DCA impactParameter;
+      if (getTrackParCov(my_track).propagateToDCA(PVbase_recalculated, o2::base::Propagator::Instance()->getNominalBz(), &impactParameter)) {
         pvrefitX = PVbase_recalculated.getX();
         pvrefitY = PVbase_recalculated.getY();
         pvrefitZ = PVbase_recalculated.getZ();
@@ -546,8 +565,8 @@ struct HfTagSelTracks {
         pvrefitSigmaXZ = PVbase_recalculated.getSigmaXZ();
         pvrefitSigmaYZ = PVbase_recalculated.getSigmaYZ();
         pvrefitSigmaZ2 = PVbase_recalculated.getSigmaZ2();
-        impParRPhi = dcaInfo[0]; // [cm]
-        impParZ = dcaInfo[1];    // [cm]
+        impParRPhi = impactParameter.getY(); // [cm]
+        impParZ = impactParameter.getZ();    // [cm]
       }
     } else {
       /// return, so that default values are not touched
@@ -568,6 +587,10 @@ struct HfTagSelTracks {
     array_DCAxyDCAz[1] = impParZ;
     return;
   } /// end of process_PVrefit function
+
+  
+  /// Partition for PV contributors
+  Partition<MY_TYPE1> pvContributors = ((aod::track::flags & (uint32_t) aod::track::PVContributor) == (uint32_t) aod::track::PVContributor);
 
   void process(aod::Collisions const& collisions,
                MY_TYPE1 const& tracks,
@@ -594,10 +617,10 @@ struct HfTagSelTracks {
     // CONTENT:
     //  - first: vector of global indices of PV contributors
     //  - second: vector of TrackParCov of PV contributors
-    std::map<int64_t, std::pair<std::vector<int64_t>, std::vector<o2::track::TrackParCov>>> map_coll_contr;
-    bool b_newColl = false;
-    int64_t newCollID = -1;
-    int64_t oldCollID = -1;
+    //std::map<int64_t, std::pair<std::vector<int64_t>, std::vector<o2::track::TrackParCov>>> map_coll_contr;
+    //bool b_newColl = false;
+    //int64_t newCollID = -1;
+    //int64_t oldCollID = -1;
 
     for (auto& track : tracks) {
 
@@ -623,32 +646,51 @@ struct HfTagSelTracks {
           /// retrieve PV contributors for the current collision
           std::vector<int64_t> vec_contrGlobID = {};
           std::vector<o2::track::TrackParCov> vec_contrTrkParCov = {};
-          if (map_coll_contr.find(track.collision().globalIndex()) != map_coll_contr.end()) {
-            /// found it, let's retrieve info
-            vec_contrGlobID = map_coll_contr[track.collision().globalIndex()].first;
-            vec_contrTrkParCov = map_coll_contr[track.collision().globalIndex()].second;
+          //if (map_coll_contr.find(track.collision().globalIndex()) != map_coll_contr.end()) {
+          //  /// found it, let's retrieve info
+          //  vec_contrGlobID = map_coll_contr[track.collision().globalIndex()].first;
+          //  vec_contrTrkParCov = map_coll_contr[track.collision().globalIndex()].second;
+//
+          //  b_newColl = false;
+          //  oldCollID = track.collision().globalIndex();
+          //} else {
+          //  /// not found, look for contributors
+          //  //auto unf_tracks_per_coll = unfiltered_tracks.sliceBy(aod::track::collisionId, track.collision().globalIndex());
+          //  //retrievePVContributors(vec_contrGlobID, vec_contrTrkParCov, (BigTracks const&)unf_tracks_per_coll, track.collision().globalIndex());
+          //  //if (debug) {
+          //  //  LOG(info) << "===> numContrib(): " << track.collision().numContrib() << ", vec_contrTrkParCov.size(): " << vec_contrTrkParCov.size();
+          //  //}
+          //  /// contributors for the current collision
+          //  auto pvContrCollision = pvContributors->sliceBy(aod::track::collisionId, track.collision().globalIndex());
+          //  for (auto contributor : pvContrCollision) {
+          //    vec_contrGlobID.push_back(contributor.globalIndex());
+          //    vec_contrTrkParCov.push_back(getTrackParCov(contributor));
+          //  }
+          //  if (debug) {
+          //    LOG(info) << "### vec_contrGlobID.size()=" << vec_contrGlobID.size() << ", vec_contrTrkParCov.size()=" << vec_contrTrkParCov.size() << ", N. original contributors=" << track.collision().numContrib();
+          //  }
+          //  if ((uint16_t)vec_contrTrkParCov.size() != track.collision().numContrib()) {
+          //    LOG(info) << "!!! something wrong in the number of contributor tracks for PV fit !!! " << vec_contrTrkParCov.size() << " vs. " << track.collision().numContrib();
+          //    return;
+          //  }
+//
+          //  /// Fill the map only if this collision was not considered yet
+          //  map_coll_contr[track.collision().globalIndex()] = std::make_pair(vec_contrGlobID, vec_contrTrkParCov);
+          //  if (debug) {
+          //    LOG(info) << ">>>> Filling map[" << track.collision().globalIndex() << "] sizes: " << map_coll_contr[track.collision().globalIndex()].first.size() << ", " << map_coll_contr[track.collision().globalIndex()].second.size();
+          //  }
+          //  b_newColl = true;
+          //  newCollID = track.collision().globalIndex();
+          //}
 
-            b_newColl = false;
-            oldCollID = track.collision().globalIndex();
-          } else {
-            /// not found, look for contributors
-            auto unf_tracks_per_coll = unfiltered_tracks.sliceBy(aod::track::collisionId, track.collision().globalIndex());
-            retrievePVContributors(vec_contrGlobID, vec_contrTrkParCov, (BigTracks const&)unf_tracks_per_coll, track.collision().globalIndex());
-            if (debug) {
-              LOG(info) << "===> numContrib(): " << track.collision().numContrib() << ", vec_contrTrkParCov.size(): " << vec_contrTrkParCov.size();
-            }
-            if ((uint16_t)vec_contrTrkParCov.size() != track.collision().numContrib()) {
-              LOG(info) << "!!! something wrong in the number of contributor tracks for PV fit !!! " << vec_contrTrkParCov.size() << " vs. " << track.collision().numContrib();
-              return;
-            }
-
-            /// Fill the map only if this collision was not considered yet
-            map_coll_contr[track.collision().globalIndex()] = std::make_pair(vec_contrGlobID, vec_contrTrkParCov);
-            if (debug) {
-              LOG(info) << ">>>> Filling map[" << track.collision().globalIndex() << "] sizes: " << map_coll_contr[track.collision().globalIndex()].first.size() << ", " << map_coll_contr[track.collision().globalIndex()].second.size();
-            }
-            b_newColl = true;
-            newCollID = track.collision().globalIndex();
+          /// contributors for the current collision
+          auto pvContrCollision = pvContributors->sliceBy(aod::track::collisionId, track.collision().globalIndex());
+          for (auto contributor : pvContrCollision) {
+            vec_contrGlobID.push_back(contributor.globalIndex());
+            vec_contrTrkParCov.push_back(getTrackParCov(contributor));
+          }
+          if (debug) {
+            LOG(info) << "### vec_contrGlobID.size()=" << vec_contrGlobID.size() << ", vec_contrTrkParCov.size()=" << vec_contrTrkParCov.size() << ", N. original contributors=" << track.collision().numContrib();
           }
 
           /// Perform the PV refit only for tracks with an assigned collision
@@ -658,12 +700,12 @@ struct HfTagSelTracks {
           process_PVrefit(track.collision(), bcstmstp, vec_contrGlobID, vec_contrTrkParCov, (BigTracks::iterator const&)track, pvrefit_PVxPVyPVz, pvrefit_PVcovM, pvrefit_DCAxyDCAz);
 
           /// Erase stuff of the older collision from the map, to save memory
-          if (b_newColl && newCollID > 0 && oldCollID > 0 && map_coll_contr.size() > 0) {
-            if (debug) {
-              LOG(info) << ">>>> Erasing map[" << oldCollID << "]";
-            }
-            map_coll_contr.erase(oldCollID);
-          }
+          //if (b_newColl && newCollID > 0 && oldCollID > 0 && map_coll_contr.size() > 0) {
+          //  if (debug) {
+          //    LOG(info) << ">>>> Erasing map[" << oldCollID << "]";
+          //  }
+          //  map_coll_contr.erase(oldCollID);
+          //}
         }
       }
       /// fill table with PV refit info
