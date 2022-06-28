@@ -69,6 +69,8 @@ struct TrackPropagation {
   Configurable<std::string> grpPath{"grpPath", "GLO/GRP/GRP", "Path of the grp file"};
   Configurable<std::string> mVtxPath{"mVtxPath", "GLO/Calib/MeanVertex", "Path of the mean vertex file"};
 
+  HistogramRegistry histos;
+
   void init(o2::framework::InitContext& initContext)
   {
     if (doprocessCovariance == true && doprocessStandard == true) {
@@ -93,6 +95,32 @@ struct TrackPropagation {
     if (!o2::base::GeometryManager::isGeometryLoaded()) {
       ccdb->get<TGeoManager>(geoPath);
     }
+
+    auto hTrkParsBug = histos.add<TH1>("hTrkParsBug", "", kTH1D, {{24, -1.5, 22.5}});
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(-1), "Tracks");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(0), "Bugged tracks");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(1), "Bug x");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(2), "Bug y");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(3), "Bug z");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(4), "Bug snp");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(5), "Bug tgl");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(6), "Bug signed1Pt");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(7), "Bug alpha");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(8), "Bug cYY");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(9), "Bug cZY");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(10), "Bug cZZ");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(11), "Bug cSnpY");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(12), "Bug cSnpZ");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(13), "Bug cSnpSnp");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(14), "Bug cTglY");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(15), "Bug cTglZ");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(16), "Bug cTglSnp");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(17), "Bug cTglTgl");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(18), "Bug c1PtY");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(19), "Bug c1PtZ");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(20), "Bug c1PtSnp");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(21), "Bug c1PtTgl");
+    hTrkParsBug->GetXaxis()->SetBinLabel(hTrkParsBug->FindBin(22), "Bug c1Pt21Pt2");
   }
 
   void initCCDB(aod::BCsWithTimestamps::iterator const& bc)
@@ -115,6 +143,177 @@ struct TrackPropagation {
     tracksParExtensionPropagated(trackPar.getPt(), trackPar.getP(), trackPar.getEta(), trackPar.getPhi());
   }
 
+  /// Protection against NaN trackIU parameters (no cov. matrix)
+  void ProtectTrackPar(o2::track::TrackParF& trackPar)
+  {
+
+    histos.fill(HIST("hTrkParsBug"), -1); // all tracks
+
+    bool isTrkBug = false;
+    if (isnan(trackPar.getX())) {
+      trackPar.setX(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 1);
+    }
+    if (isnan(trackPar.getY())) {
+      trackPar.setY(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 2);
+    }
+    if (isnan(trackPar.getZ())) {
+      trackPar.setZ(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 3);
+    }
+    if (isnan(trackPar.getSnp())) {
+      trackPar.setSnp(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 4);
+    }
+    if (isnan(trackPar.getTgl())) {
+      trackPar.setTgl(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 5);
+    }
+    if (isnan(trackPar.getQ2Pt())) {
+      trackPar.setQ2Pt(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 6);
+    }
+    if (isnan(trackPar.getAlpha())) {
+      trackPar.setAlpha(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 7);
+    }
+
+    if (isTrkBug) {
+      histos.fill(HIST("hTrkParsBug"), 0); // all bugged tracks
+    }
+  }
+
+  /// Protection against NaN trackIU parameters (with cov. matrix)
+  void ProtectTrackParCov(o2::track::TrackParCovF& trackParCov)
+  {
+
+    histos.fill(HIST("hTrkParsBug"), -1); // all tracks
+
+    bool isTrkBug = false;
+    if (isnan(trackParCov.getX())) {
+      trackParCov.setX(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 1);
+    }
+    if (isnan(trackParCov.getY())) {
+      trackParCov.setY(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 2);
+    }
+    if (isnan(trackParCov.getZ())) {
+      trackParCov.setZ(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 3);
+    }
+    if (isnan(trackParCov.getSnp())) {
+      trackParCov.setSnp(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 4);
+    }
+    if (isnan(trackParCov.getTgl())) {
+      trackParCov.setTgl(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 5);
+    }
+    if (isnan(trackParCov.getQ2Pt())) {
+      trackParCov.setQ2Pt(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 6);
+    }
+    if (isnan(trackParCov.getAlpha())) {
+      trackParCov.setAlpha(999.);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 7);
+    }
+    if (isnan(trackParCov.getSigmaY2())) {
+      trackParCov.setCov(999., o2::track::kSigY2);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 8);
+    }
+    if (isnan(trackParCov.getSigmaZY())) {
+      trackParCov.setCov(999., o2::track::kSigZY);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 9);
+    }
+    if (isnan(trackParCov.getSigmaZ2())) {
+      trackParCov.setCov(999., o2::track::kSigZ2);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 10);
+    }
+    if (isnan(trackParCov.getSigmaSnpY())) {
+      trackParCov.setCov(999., o2::track::kSigSnpY);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 11);
+    }
+    if (isnan(trackParCov.getSigmaSnpZ())) {
+      trackParCov.setCov(999., o2::track::kSigSnpZ);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 12);
+    }
+    if (isnan(trackParCov.getSigmaSnp2())) {
+      trackParCov.setCov(999., o2::track::kSigSnp2);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 13);
+    }
+    if (isnan(trackParCov.getSigmaTglY())) {
+      trackParCov.setCov(999., o2::track::kSigTglY);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 14);
+    }
+    if (isnan(trackParCov.getSigmaTglZ())) {
+      trackParCov.setCov(999., o2::track::kSigTglZ);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 15);
+    }
+    if (isnan(trackParCov.getSigmaTglSnp())) {
+      trackParCov.setCov(999., o2::track::kSigTglSnp);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 16);
+    }
+    if (isnan(trackParCov.getSigmaTgl2())) {
+      trackParCov.setCov(999., o2::track::kSigTgl2);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 17);
+    }
+    if (isnan(trackParCov.getSigma1PtY())) {
+      trackParCov.setCov(999., o2::track::kSigQ2PtY);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 18);
+    }
+    if (isnan(trackParCov.getSigma1PtZ())) {
+      trackParCov.setCov(999., o2::track::kSigQ2PtZ);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 19);
+    }
+    if (isnan(trackParCov.getSigma1PtSnp())) {
+      trackParCov.setCov(999., o2::track::kSigQ2PtSnp);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 20);
+    }
+    if (isnan(trackParCov.getSigma1PtTgl())) {
+      trackParCov.setCov(999., o2::track::kSigQ2PtTgl);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 21);
+    }
+    if (isnan(trackParCov.getSigma1Pt2())) {
+      trackParCov.setCov(999., o2::track::kSigQ2Pt2);
+      isTrkBug = true;
+      histos.fill(HIST("hTrkParsBug"), 21);
+    }
+
+    if (isTrkBug) {
+      histos.fill(HIST("hTrkParsBug"), 0); // all bugged tracks
+    }
+  }
+
   void processStandard(aod::StoredTracksIU const& tracks, aod::Collisions const&, aod::BCsWithTimestamps const& bcs)
   {
     if (bcs.size() == 0) {
@@ -128,6 +327,7 @@ struct TrackPropagation {
       dcaInfo[0] = 999;
       dcaInfo[1] = 999;
       auto trackPar = getTrackPar(track);
+      ProtectTrackPar(trackPar);
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
         if (track.has_collision()) {
@@ -158,6 +358,7 @@ struct TrackPropagation {
     for (auto& track : tracks) {
       dcaInfoCov.set(999, 999, 999, 999, 999);
       auto trackParCov = getTrackParCov(track);
+      ProtectTrackParCov(trackParCov);
       // Only propagate tracks which have passed the innermost wall of the TPC (e.g. skipping loopers etc). Others fill unpropagated.
       if (track.x() < o2::constants::geom::XTPCInnerRef + 0.1) {
         if (track.has_collision()) {
