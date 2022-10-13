@@ -644,7 +644,7 @@ DECLARE_SOA_TABLE(HfCandBPlusBase, "AOD", "HFCANDBPLUSBASE",
                   hf_cand::P<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::P2<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::PVector<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
-                  hf_cand::CPA<collision::PosX, collision::PosY, collision::PosZ, hf_cand::XSecondaryVertex, hf_cand::YSecondaryVertex, hf_cand::ZSecondaryVertex, hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::f<collision::PosX, collision::PosY, collision::PosZ, hf_cand::XSecondaryVertex, hf_cand::YSecondaryVertex, hf_cand::ZSecondaryVertex, hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::CPAXY<collision::PosX, collision::PosY, hf_cand::XSecondaryVertex, hf_cand::YSecondaryVertex, hf_cand_prong2::Px, hf_cand_prong2::Py>,
                   hf_cand::Ct<collision::PosX, collision::PosY, collision::PosZ, hf_cand::XSecondaryVertex, hf_cand::YSecondaryVertex, hf_cand::ZSecondaryVertex, hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::ImpactParameterXY<collision::PosX, collision::PosY, collision::PosZ, hf_cand::XSecondaryVertex, hf_cand::YSecondaryVertex, hf_cand::ZSecondaryVertex, hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
@@ -1440,6 +1440,98 @@ DECLARE_SOA_TABLE(HfCandB0MCRec, "AOD", "HFCANDB0MCREC",
 DECLARE_SOA_TABLE(HfCandB0MCGen, "AOD", "HFCANDB0MCGEN",
                   hf_cand_b0::FlagMCMatchGen,
                   hf_cand_b0::OriginMCGen);
+
+// specific Σc0,++ candidate properties
+namespace hf_cand_sc
+{
+  DECLARE_SOA_COLUMN(Charge, charge, int); //! // Σc charge(either 0 or ++)
+  DECLARE_SOA_COLUMN(StatusSpreadLcMinvpKpiFromPDG, statusSpreadLcMinvpKpiFromPDG, int); //! // Λc Minv(pKpi) spread from PDG Λc mass
+  DECLARE_SOA_COLUMN(StatusSpreadLcMinvpiKpFromPDG, statusSpreadLcMinvpiKpFromPDG, int); //! // Λc Minv(piKp) spread from PDG Λc mass
+  DECLARE_SOA_INDEX_COLUMN_FULL(Index0, index0, int, HfCandProng3, "_0"); // Λc index
+  // MC matching result:
+  /// TODO
+  /// [...]
+
+  // mapping of decay types
+  enum DecayType { SigmaCToPKPiPi };
+
+  // Σc0,++ → Λc+(→pK-π+) π-,+
+  /// @brief SigmaC inv. mass using PDG masses for Lc and pion
+  //template <typename T>
+  //auto InvMassSc(const T& candidate)
+  //{
+  //  return candidate.m(array{RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus), RecoDecay::getMassPDG(kPiPlus)});
+  //}
+
+  /// @brief SigmaC inv. mass using reco mass for Lc in pKpi and PDG mass for pion
+  template <typename T>
+  auto InvMassScRecoLcpKpi(const T& candidate)
+  {
+    auto candLc = candidate.index0_as<soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate>>();
+    return candidate.m( array{ hf_cand_prong3::InvMassLcpKpi(candLc), RecoDecay::getMassPDG(kPiPlus) } );
+  }
+
+  /// @brief SigmaC inv. mass using reco mass for Lc in piKp and PDG mass for pion
+  template <typename T>
+  auto InvMassScRecoLcpiKp(const T& candidate)
+  {
+    auto candLc = candidate.index0_as<soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate>>();
+    return candidate.m( array{ hf_cand_prong3::InvMassLcpiKp(candLc), RecoDecay::getMassPDG(kPiPlus) } );
+  }
+
+  template <typename T>
+  auto YSc0(const T& candidate) {
+    return candidate.y(RecoDecay::getMassPDG(pdg::Code::kSigmaC0));
+  }
+
+  template <typename T>
+  auto YScPlusPlus(const T& candidate) {
+    return candidate.y(RecoDecay::getMassPDG(pdg::Code::kSigmaCPlusPlus));
+  }
+
+} // namespace hf_cand_sc
+
+// declare dedicated Σc0,++ decay candidate table
+// NB: no topology for Σc0, ++ (strong decay)
+DECLARE_SOA_TABLE(HfCandScBase, "AOD", "HFCANDSCBASE", 
+                  o2::soa::Index<>,                                             
+                  // general columns
+                  hf_cand::CollisionId,                          
+                  /* prong 0 */
+                  // hf_cand::ImpactParameterNormalised0<hf_cand::ImpactParameter0, hf_cand::ErrorImpactParameter0>,
+                  hf_cand::PtProng0<hf_cand::PxProng0, hf_cand::PyProng0>, 
+                  hf_cand::Pt2Prong0<hf_cand::PxProng0, hf_cand::PyProng0>,
+                  hf_cand::PVectorProng0<hf_cand::PxProng0, hf_cand::PyProng0, hf_cand::PzProng0>,
+                  /* prong 1 */
+                  // hf_cand::ImpactParameterNormalised1<hf_cand::ImpactParameter1, hf_cand::ErrorImpactParameter1>,
+                  hf_cand::PtProng1<hf_cand::PxProng1, hf_cand::PyProng1>,
+                  hf_cand::Pt2Prong1<hf_cand::PxProng1, hf_cand::PyProng1>,
+                  hf_cand::PVectorProng1<hf_cand::PxProng1, hf_cand::PyProng1, hf_cand::PzProng1>,
+                  // 2-prong specific columns
+                  hf_cand::PxProng0, hf_cand::PyProng0, hf_cand::PzProng0,
+                  hf_cand::PxProng1, hf_cand::PyProng1, hf_cand::PzProng1,
+                  //hf_cand::ImpactParameter0, hf_cand::ImpactParameter1,
+                  //hf_cand::ErrorImpactParameter0, hf_cand::ErrorImpactParameter1,
+                  hf_cand_sc::Index0Id, hf_track_index::Index1Id,
+                  hf_track_index::HFflag,
+                  /* Σc0,++ specific columns */
+                  hf_cand_sc::Charge,
+                  hf_cand_sc::StatusSpreadLcMinvpKpiFromPDG, hf_cand_sc::StatusSpreadLcMinvpiKpFromPDG,
+                  /* dynamic columns */
+                  hf_cand_prong2::M<hf_cand::PxProng0, hf_cand::PyProng0, hf_cand::PzProng0, hf_cand::PxProng1, hf_cand::PyProng1, hf_cand::PzProng1>,
+                  hf_cand_prong2::M2<hf_cand::PxProng0, hf_cand::PyProng0, hf_cand::PzProng0, hf_cand::PxProng1, hf_cand::PyProng1, hf_cand::PzProng1>,
+                  /* dynamic columns that use candidate momentum components */
+                  hf_cand::Pt<hf_cand_prong2::Px, hf_cand_prong2::Py>,
+                  hf_cand::Pt2<hf_cand_prong2::Px, hf_cand_prong2::Py>,
+                  hf_cand::P<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::P2<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::PVector<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::Eta<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::Phi<hf_cand_prong2::Px, hf_cand_prong2::Py>,
+                  hf_cand::Y<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::E<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
+                  hf_cand::E2<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>);
+
 } // namespace o2::aod
 
 #endif // O2_ANALYSIS_HFSECONDARYVERTEX_H_

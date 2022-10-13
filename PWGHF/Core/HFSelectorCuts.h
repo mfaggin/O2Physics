@@ -38,7 +38,9 @@ enum Code {
   kB0 = 511,
   kB0bar = -511,
   kBPlus = 521,
-  kX3872 = 9920443
+  kX3872 = 9920443,
+  kSigmaC0 = 4112,
+  kSigmaCPlusPlus = 4222
 };
 } // namespace pdg
 
