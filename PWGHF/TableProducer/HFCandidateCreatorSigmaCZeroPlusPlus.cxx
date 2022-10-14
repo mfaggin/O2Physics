@@ -35,7 +35,7 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
     Configurable<int> selectionFlagLc{"selectionFlagLc", 1, "Selection Flag for Lc"};
     Configurable<double> cutYCandLcMax{"cutYCandLcMax", -1., "max. candLc. Lc rapidity"};
     Configurable<double> cutMinvpKpiCandLcMax{"cutMinvpKpiCandLcMax", 0.03, "max. spread (abs. value9) between PDG(Lc) and Minv(pKpi)"};
-    Configurable<double> cutMinvpK0sCandLcMax{"cutMinvpK0sCandLcMax", 0.03, "max. spread (abs. value9) between PDG(Lc) and Minv(pK0s)"};
+    Configurable<double> cutMinvpiKpCandLcMax{"cutMinvpiKpCandLcMax", 0.03, "max. spread (abs. value9) between PDG(Lc) and Minv(pK0s)"};
 
     /// Selections on candidate soft π-,+
     Configurable<float> softPiEta{"softPiEta", 0.9f, "Soft pion max value for pseudorapidity (abs vale)"};
@@ -102,10 +102,10 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
         /// selection on the Λc+ inv. mass window we want to consider for Σc0,++ candidate creation
         auto statusSpreadMinvpKpiFromPDG = 0;
         auto statusSpreadMinvpiKpFromPDG = 0;
-        if(candLc.isSelLcpKpi() >= 1 && std::abs( InvMassLcpKpi(candLc) - RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus) ) <= statusSpreadMinvpKpiFromPDG) {
+        if(candLc.isSelLcpKpi() >= 1 && std::abs( InvMassLcpKpi(candLc) - RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus) ) <= cutMinvpKpiCandLcMax) {
           statusSpreadMinvpKpiFromPDG = 1;
         }
-        if(candLc.isSelLcpiKp() >= 1 && std::abs( InvMassLcpiKp(candLc) - RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus) ) <= statusSpreadMinvpiKpFromPDG) {
+        if(candLc.isSelLcpiKp() >= 1 && std::abs( InvMassLcpiKp(candLc) - RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus) ) <= cutMinvpiKpCandLcMax) {
           statusSpreadMinvpiKpFromPDG = 1;
         }
         if (statusSpreadMinvpKpiFromPDG == 0 && statusSpreadMinvpiKpFromPDG == 0){
