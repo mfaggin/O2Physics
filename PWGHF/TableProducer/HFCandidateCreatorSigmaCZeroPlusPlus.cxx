@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 
 /// \file HFCandidateCreatorSigmaCZeroPlusPlus.cxx
-/// \brief Σc0,++ → Λc+(→pK-π+) π-,+ analysis task
+/// \brief Σc0,++ → Λc+(→pK-π+) π-,+ candidate builder
 /// \note Λc± candidates selected from the HFLcCandidateSelector.cxx
 ///
 /// \author Mattia Faggin <mfaggin@cern.ch>, University and INFN PADOVA
@@ -140,15 +140,13 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
           int chargeLc = candLc.index0_as<aod::Tracks>().sign() + candLc.index1_as<aod::Tracks>().sign() + candLc.index2_as<aod::Tracks>().sign();
           int chargeSoftPi = trackSoftPi.sign();
           int chargeSc = chargeLc + chargeSoftPi;
-          if(chargeSc != 0 && chargeSc != 2) {
+          if(std::abs(chargeSc) != 0 && std::abs(chargeSc) != 2) {
             /// this shall never happen
             LOG(fatal) << ">>> SigmaC candidate with charge +1 built, not possible! Charge Lc: " << chargeLc << ", charge soft pion: " << chargeSoftPi;
             continue;
           }
 
-          ///
-          /// TODO: fill the table
-          ///
+          /// fill the Σc0,++ candidate table
           rowScCandidates(/* general columns */
                           candLc.collisionId(),
                           /* 2-prong specific columns */
@@ -159,29 +157,6 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
                           /* Σc0,++ specific columns */
                           chargeSc,
                           statusSpreadMinvpKpiFromPDG, statusSpreadMinvpiKpFromPDG);
-
-
-          /// THE FOLLOWING THINGS CAN BE MOVED TO THE ANALYSIS TASK!!!
-          /// HERE USE THE FUNCTIONS FROM hf_can_sc !!! They are templated and calculated on-the-fly (dynamic columns)
-
-          /// kinematic properties for Σc0,++
-          //double energySoftPi = RecoDecay::e(trackSoftPi.px(), trackSoftPi.py(), trackSoftPi.pz(), RecoDecay::getMassPDG(kPiPlus));
-          //double ptLc = candLc.pt();
-          //double ptSc = RecoDecay::pt(candLc.px()+trackSoftPi.px(), candLc.py()+trackSoftPi.py());
-          //double ySc = RecoDecay::y(std::array{candLc.px()+trackSoftPi.px(), candLc.py()+trackSoftPi.py(), candLc.pz()+trackSoftPi.pz()}, RecoDecay::getMassPDG(pdgSc));
-          //if(candLc.isSelLcpKpi() >= selectionFlagLc) { /// first prong: proton; third prong: pion
-          //  massSc = RecoDecay::m( array{ array{candLc.px(), candLc.py(), candLc.pz()}, array{trackSoftPi.px(), trackSoftPi.py(), trackSoftPi.pz()} }, array{(double)InvMassLcpKpi(candLc), RecoDecay::getMassPDG(kPiPlus)});
-          //  //
-          //  //  TODO: fill the table with ptSc and massSc
-          //  //
-          //}
-          //if(candLc.isSelLcpiKp() >= selectionFlagLc) { /// first prong: pion; third prong: proton
-          //  massSc = RecoDecay::m( array{ array{candLc.px(), candLc.py(), candLc.pz()}, array{trackSoftPi.px(), trackSoftPi.py(), trackSoftPi.pz()} }, array{(double)InvMassLcpiKp(candLc), RecoDecay::getMassPDG(kPiPlus)});
-          //  //
-          //  //  TODO: fill the table with ptSc and massSc
-          //  //
-          //}
-          
 
         } /// end loop over tracks
 
