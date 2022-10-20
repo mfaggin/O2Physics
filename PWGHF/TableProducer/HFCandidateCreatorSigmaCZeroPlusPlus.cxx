@@ -165,6 +165,68 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
     } /// end process
 };
 
+struct HFCandidateCreatorSigmaCZeroPlusPlusMC {
+
+    /// Table with MC info for reconstructed and geerated Σc0,++
+    /// TODO
+    /// [...]  
+
+    /// @brief init function
+    void init(InitContext const&) {}
+
+    using LambdacMC = soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate, aod::HfCandProng3MCRec>;
+    using TracksMC = soa::Join<aod::Tracks, aod::McTrackLabels>;
+
+    /// @brief process function for MC matching of Σc0,++ → Λc+(→pK-π+) π- reconstructed candidates and counting of generated ones
+    /// @param candidatesSigmaC reconstructed Σc0,++ candidates
+    /// @param particlesMC table of generaed particles
+    void processMC(const aod::HfCandScBase& candidatesSigmaC, aod::McParticles const& particlesMC,
+    soa::Join<LambdacMC> const&, const TracksMC&) {
+      
+      int indexRec = -1;
+      int8_t sign = 0;
+      int8_t origin = 0;
+      int chargeSc = 999;
+      //std::vector<int> arrDaughIndex; /// index of daughters of MC particle
+
+      /// Loop over reconstructed Σc0,++ candidates to match with MC
+      for(auto const& candSigmaC : candidatesSigmaC) {
+        indexRec = -1;
+        sign = 0;
+        origin = 0;
+        //arrDaughIndex.clear();
+
+        /// skip immediately the candidate Σc0,++ w/o a Λc+ matched to MC
+        auto candLc = candSigmaC.index0();
+        if (!(candLc.hfflag() & 1 << DecayType::LcToPKPi)) {
+
+          /// TODO: fill the reco table with dummy values
+          /// [...]  
+
+          continue;
+        }
+
+        /// matching to MC
+        auto arrayDaughters = array{candLc.index0_as<TracksMC>(),
+                                    candLc.index1_as<TracksMC>(),
+                                    candLc.index2_as<TracksMC>(),
+                                    candSigmaC.index1_as<TracksMC>()};
+        
+        chargeSc = candSigmaC.charge();
+        if(chargeSc == 0) {
+          /// candidate Σc0
+          indexRec = RecoDecay::getMatchedMCRec(particlesMC, arrayDaughters, pdg::Code::kSigmaC0, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiMinus}, true, &sign, 2);
+        } else if(std::abs(chargeSc) == 2) {
+          /// candidate Σc++
+          indexRec = RecoDecay::getMatchedMCRec(particlesMC, arrayDaughters, pdg::Code::kSigmaCPlusPlus, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiPlus}, true, &sign, 2);
+        }
+
+      } /// end loop over reconstructed Σc0,++ candidates
+
+      
+    } /// end process
+};
+
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   return WorkflowSpec{
