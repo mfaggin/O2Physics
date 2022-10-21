@@ -62,10 +62,10 @@ struct TaskSigmaC{
             /// get the candidate Λc+ used to build the candidate Σc0,++
             /// and understand which mass hypotheses are possible
             const auto& candLambdaC = candSigmaC.index0_as<soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate>>();
-            const int isCandLambdaCpKpi = candLambdaC.isSelLcpKpi();
-            const int isCandLambdaCpiKp = candLambdaC.isSelLcpiKp();
+            const int isCandLambdaCpKpi = (candLambdaC.isSelLcpKpi() >= 1) && candSigmaC.statusSpreadLcMinvpKpiFromPDG(); // Λc+ → pK-π+ and within the requested mass to build the Σc0,++
+            const int isCandLambdaCpiKp = (candLambdaC.isSelLcpiKp() >= 1) && candSigmaC.statusSpreadLcMinvpiKpFromPDG(); // Λc+ → π+K-p and within the requested mass to build the Σc0,++
             double massSigmaC(-1.), massLambdaC(-1.), deltaMass(-1.), ptSigmaC(candSigmaC.pt()), ptLambdaC(candLambdaC.pt());
-            if(isCandLambdaCpKpi >= 1 && candSigmaC.statusSpreadLcMinvpKpiFromPDG()) {
+            if(isCandLambdaCpKpi) {
                 /// candidate Λc+ → pK-π+ (and charge conjugate) within the range of M(pK-π+) chosen in the Σc0,++ builder
                 massSigmaC = InvMassScRecoLcpKpi(candSigmaC);
                 massLambdaC = InvMassLcpKpi(candLambdaC);
@@ -83,7 +83,7 @@ struct TaskSigmaC{
                     registry.fill(HIST("hDeltaMassLambdaCFromSigmaCZeroPlusPlus"), deltaMass, ptLambdaC);   // Λc+ ← Σc0,++
                 }
             } /// end candidate Λc+ → pK-π+ (and charge conjugate)
-            if(isCandLambdaCpiKp >=1 && candSigmaC.statusSpreadLcMinvpiKpFromPDG()) {
+            if(isCandLambdaCpiKp) {
                 /// candidate Λc+ → π+K-p (and charge conjugate) within the range of M(π+K-p) chosen in the Σc0,++ builder
                 massSigmaC = InvMassScRecoLcpiKp(candSigmaC);
                 massLambdaC = InvMassLcpiKp(candLambdaC);
