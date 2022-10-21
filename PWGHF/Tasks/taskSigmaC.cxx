@@ -51,7 +51,7 @@ struct TaskSigmaC{
     /// @param collision is the reconstruction collision
     /// @param candidatesSigmaC is the candidate SigmaC
     /// @param 
-    void process(const aod::Collision& collision, const aod::HfCandScBase& candidatesSigmaC,
+    void process(const aod::Collision& collision, const aod::HfCandSigmaC& candidatesSigmaC,
     soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate> const&, const soa::Join<aod::Tracks, aod::TracksDCA>&) {
 
         /// loop over the candidate Σc0,++

@@ -29,7 +29,7 @@ using namespace o2::aod::hf_cand_prong3;
 struct HFCandidateCreatorSigmaCZeroPlusPlus {
 
     /// Table with Σc0,++ info
-    Produces<aod::HfCandScBase> rowScCandidates;
+    Produces<aod::HfCandSigmaC> rowScCandidates;
 
     /// Selection of candidates Λc+
     Configurable<int> selectionFlagLc{"selectionFlagLc", 1, "Selection Flag for Lc"};
@@ -165,7 +165,7 @@ struct HFCandidateCreatorSigmaCZeroPlusPlus {
     } /// end process
 };
 
-struct HFCandidateCreatorSigmaCZeroPlusPlusMC {
+struct HFCandidateSigmaCZeroPlusPlusMCMatch {
 
     /// Table with MC info for reconstructed and geerated Σc0,++
     /// TODO
@@ -180,29 +180,31 @@ struct HFCandidateCreatorSigmaCZeroPlusPlusMC {
     /// @brief process function for MC matching of Σc0,++ → Λc+(→pK-π+) π- reconstructed candidates and counting of generated ones
     /// @param candidatesSigmaC reconstructed Σc0,++ candidates
     /// @param particlesMC table of generaed particles
-    void processMC(const aod::HfCandScBase& candidatesSigmaC, aod::McParticles const& particlesMC,
+    void processMC(const aod::HfCandSigmaC& candidatesSigmaC, aod::McParticles const& particlesMC,
     soa::Join<LambdacMC> const&, const TracksMC&) {
       
+      Produces<aod::HfCandProngSigmaCMCRec> rowMCMatchSigmaCRec;
+      Produces<aod::HfCandProngSigmaCMCGen> rowMCMatchSigmaCGen;
+
       int indexRec = -1;
       int8_t sign = 0;
+      int8_t flag = 0;
       int8_t origin = 0;
       int chargeSc = 999;
       //std::vector<int> arrDaughIndex; /// index of daughters of MC particle
 
-      /// Loop over reconstructed Σc0,++ candidates to match with MC
+      /// Match reconstructed Σc0,++ candidates
       for(auto const& candSigmaC : candidatesSigmaC) {
         indexRec = -1;
         sign = 0;
+        flag = 0;
         origin = 0;
         //arrDaughIndex.clear();
 
         /// skip immediately the candidate Σc0,++ w/o a Λc+ matched to MC
-        auto candLc = candSigmaC.index0();
-        if (!(candLc.hfflag() & 1 << DecayType::LcToPKPi)) {
-
-          /// TODO: fill the reco table with dummy values
-          /// [...]  
-
+        auto candLc = candSigmaC.index0_as<LambdacMC>();
+        if (!(std::abs(candLc.flagMCMatchRec()) == 1 << DecayType::LcToPKPi)) {
+          rowMCMatchSigmaCRec(flag, origin);
           continue;
         }
 
@@ -211,24 +213,55 @@ struct HFCandidateCreatorSigmaCZeroPlusPlusMC {
                                     candLc.index1_as<TracksMC>(),
                                     candLc.index2_as<TracksMC>(),
                                     candSigmaC.index1_as<TracksMC>()};
-        
         chargeSc = candSigmaC.charge();
         if(chargeSc == 0) {
           /// candidate Σc0
           indexRec = RecoDecay::getMatchedMCRec(particlesMC, arrayDaughters, pdg::Code::kSigmaC0, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiMinus}, true, &sign, 2);
+          if (indexRec > -1) {
+            flag = sign * (1 << aod::hf_cand_sc::DecayType::SigmaCZeroToPKPiPi);
+          }
         } else if(std::abs(chargeSc) == 2) {
           /// candidate Σc++
           indexRec = RecoDecay::getMatchedMCRec(particlesMC, arrayDaughters, pdg::Code::kSigmaCPlusPlus, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiPlus}, true, &sign, 2);
+          if (indexRec > -1) {
+            flag = sign * (1 << aod::hf_cand_sc::DecayType::SigmaCPlusPlusToPKPiPi);
+          }
         }
 
+        /// check the origin (prompt vs. non-prompt) 
+        if(flag != 0) {
+          auto particle = particlesMC.rawIteratorAt(indexRec);
+          origin = RecoDecay::getCharmHadronOrigin(particlesMC, particle);
+        }
+
+        /// fill the table with results of reconstruction level MC matching
+        rowMCMatchSigmaCRec(flag, origin);
       } /// end loop over reconstructed Σc0,++ candidates
 
-      
-    } /// end process
+      /// Match generated Σc0,++ candidates
+      for(auto& particle : particlesMC) {
+        flag = 0;
+        origin = 0;
+        
+        if (RecoDecay::isMatchedMCGen(particlesMC, particle, pdg::Code::kSigmaC0, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiMinus}, true, &sign, 2)) {
+          // generated Σc0
+          flag = sign * (1 << aod::hf_cand_sc::DecayType::SigmaCZeroToPKPiPi);
+        } else if (RecoDecay::isMatchedMCGen(particlesMC, particle, pdg::Code::kSigmaCPlusPlus, array{(int) kProton, (int) kKMinus, (int) kPiPlus, (int) kPiPlus}, true, &sign, 2)) {
+          // generated Σc++
+          flag = sign * (1 << aod::hf_cand_sc::DecayType::SigmaCPlusPlusToPKPiPi);
+        }
+
+        /// fill the table with results of generation level MC matching
+        rowMCMatchSigmaCGen(flag, origin);
+
+      }/// end loop over particlesMC  
+    } /// end processMC
+    PROCESS_SWITCH(HFCandidateSigmaCZeroPlusPlusMCMatch, processMC, "Process MC", false);
 };
 
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   return WorkflowSpec{
-    adaptAnalysisTask<HFCandidateCreatorSigmaCZeroPlusPlus>(cfgc, TaskName{"hf-sigmac-candidate-creator"})};
+    adaptAnalysisTask<HFCandidateCreatorSigmaCZeroPlusPlus>(cfgc, TaskName{"hf-sigmac-candidate-creator"}),
+    adaptAnalysisTask<HFCandidateSigmaCZeroPlusPlusMCMatch>(cfgc, TaskName{"hf-sigmac-mc-match"})};
 }

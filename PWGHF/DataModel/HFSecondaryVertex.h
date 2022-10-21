@@ -1449,20 +1449,15 @@ namespace hf_cand_sc
   DECLARE_SOA_COLUMN(StatusSpreadLcMinvpiKpFromPDG, statusSpreadLcMinvpiKpFromPDG, int); //! // Λc Minv(piKp) spread from PDG Λc mass
   DECLARE_SOA_INDEX_COLUMN_FULL(Index0, index0, int, HfCandProng3, "_0"); // Λc index
   // MC matching result:
-  /// TODO
-  /// [...]
+  DECLARE_SOA_COLUMN(FlagMCMatchRec, flagMCMatchRec, int8_t); //! reconstruction level
+  DECLARE_SOA_COLUMN(FlagMCMatchGen, flagMCMatchGen, int8_t); //! generator level
+  DECLARE_SOA_COLUMN(OriginMCRec, originMCRec, int8_t);       //! particle origin, reconstruction level
+  DECLARE_SOA_COLUMN(OriginMCGen, originMCGen, int8_t);       //! particle origin, generator level
 
   // mapping of decay types
-  enum DecayType { SigmaCToPKPiPi };
+  enum DecayType { SigmaCZeroToPKPiPi=0, SigmaCPlusPlusToPKPiPi };
 
-  // Σc0,++ → Λc+(→pK-π+) π-,+
-  /// @brief SigmaC inv. mass using PDG masses for Lc and pion
-  //template <typename T>
-  //auto InvMassSc(const T& candidate)
-  //{
-  //  return candidate.m(array{RecoDecay::getMassPDG(pdg::Code::kLambdaCPlus), RecoDecay::getMassPDG(kPiPlus)});
-  //}
-
+  /// Σc0,++ → Λc+(→pK-π+) π-,+
   /// @brief SigmaC inv. mass using reco mass for Lc in pKpi and PDG mass for pion
   template <typename T>
   auto InvMassScRecoLcpKpi(const T& candidate)
@@ -1493,7 +1488,7 @@ namespace hf_cand_sc
 
 // declare dedicated Σc0,++ decay candidate table
 // NB: no topology for Σc0, ++ (strong decay)
-DECLARE_SOA_TABLE(HfCandScBase, "AOD", "HFCANDSCBASE", 
+DECLARE_SOA_TABLE(HfCandSigmaC, "AOD", "HFCANDSIGMAC", 
                   o2::soa::Index<>,                                             
                   // general columns
                   hf_cand::CollisionId,                          
@@ -1531,6 +1526,16 @@ DECLARE_SOA_TABLE(HfCandScBase, "AOD", "HFCANDSCBASE",
                   hf_cand::Y<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::E<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>,
                   hf_cand::E2<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>);
+
+// table with results of reconstruction level MC matching
+DECLARE_SOA_TABLE(HfCandProngSigmaCMCRec, "AOD", "HFCANDSCMCREC", //!
+                  hf_cand_prong2::FlagMCMatchRec,
+                  hf_cand_prong2::OriginMCRec);
+
+// table with results of generation level MC matching
+DECLARE_SOA_TABLE(HfCandProngSigmaCMCGen, "AOD", "HFCANDSCMCGEN", //!
+                  hf_cand_prong2::FlagMCMatchGen,
+                  hf_cand_prong2::OriginMCGen);
 
 } // namespace o2::aod
 
