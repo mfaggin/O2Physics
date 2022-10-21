@@ -1528,12 +1528,12 @@ DECLARE_SOA_TABLE(HfCandSigmaC, "AOD", "HFCANDSIGMAC",
                   hf_cand::E2<hf_cand_prong2::Px, hf_cand_prong2::Py, hf_cand_prong2::Pz>);
 
 // table with results of reconstruction level MC matching
-DECLARE_SOA_TABLE(HfCandProngSigmaCMCRec, "AOD", "HFCANDSCMCREC", //!
+DECLARE_SOA_TABLE(HfCandSigmaCMCRec, "AOD", "HFCANDSCMCREC", //!
                   hf_cand_prong2::FlagMCMatchRec,
                   hf_cand_prong2::OriginMCRec);
 
 // table with results of generation level MC matching
-DECLARE_SOA_TABLE(HfCandProngSigmaCMCGen, "AOD", "HFCANDSCMCGEN", //!
+DECLARE_SOA_TABLE(HfCandSigmaCMCGen, "AOD", "HFCANDSCMCGEN", //!
                   hf_cand_prong2::FlagMCMatchGen,
                   hf_cand_prong2::OriginMCGen);
 

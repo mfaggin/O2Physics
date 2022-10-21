@@ -57,11 +57,10 @@ struct TaskSigmaC{
         /// [...]
     }; /// end init
 
-    /// @brief process function to fill the histograms needed in analysis
-    /// @param collision is the reconstruction collision
-    /// @param candidatesSigmaC is the candidate SigmaC
+    /// @brief process function to fill the histograms needed in analysis (data)
+    /// @param candidatesSigmaC are the reconstructed candidate Σc0,++
     /// @param 
-    void process(const aod::Collision& collision, const aod::HfCandSigmaC& candidatesSigmaC,
+    void process(const aod::HfCandSigmaC& candidatesSigmaC,
     soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate> const&, const soa::Join<aod::Tracks, aod::TracksDCA>&) {
 
         /// loop over the candidate Σc0,++
@@ -130,9 +129,36 @@ struct TaskSigmaC{
         } /// end loop over the candidate Σc0,++
     };  /// end process
 
+
+
+    /// @brief process function to fill the histograms needed in analysis (MC)
+    /// @param candidatesSigmaC are the reconstructed candidate Σc0,++ with MC info
+    /// @param particlesMC are the generated particles with flags wheter they are Σc0,++ or not
+    /// @param 
+    void processMC(const soa::Join<aod::HfCandSigmaC, aod::HfCandSigmaCMCRec>& candidatesSigmaC,
+    soa::Join<aod::McParticles, aod::HfCandSigmaCMCGen> const& particlesMC,
+    soa::Join<aod::HfCandProng3, aod::HFSelLcCandidate, aod::HfCandProng3MCRec> const&, const soa::Join<aod::Tracks, aod::TracksDCA>&) {
+
+        /// MC generated particles
+        for(auto& particle : particlesMC) {
+
+            /// look for the generated Σc0,++
+            /// reject immediately different particles
+            bool isSigmaCZeroGen = (std::abs(particle.flagMCMatchGen()) == (1 << aod::hf_cand_sc::DecayType::SigmaCZeroToPKPiPi));
+            bool isSigmaCPlusPlusGen = (std::abs(particle.flagMCMatchGen()) == (1 << aod::hf_cand_sc::DecayType::SigmaCPlusPlusToPKPiPi));
+            if(!isSigmaCZeroGen && !isSigmaCPlusPlusGen)
+                continue;
+            
+            /// check for generated particles in GenLimAcc, GenAccMother, GenAcc ....
+            /// [...]
+            
+
+        } /// end loop over generated particles
+    };
+
 };
 
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
-  return WorkflowSpec{adaptAnalysisTask<TaskSigmaC>(cfgc, TaskName{"RecoData/hf-task-sigmac"})};
+  return WorkflowSpec{adaptAnalysisTask<TaskSigmaC>(cfgc, TaskName{"hf-task-sigmac"})};
 }

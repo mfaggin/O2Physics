@@ -183,8 +183,8 @@ struct HFCandidateSigmaCZeroPlusPlusMCMatch {
     void processMC(const aod::HfCandSigmaC& candidatesSigmaC, aod::McParticles const& particlesMC,
     soa::Join<LambdacMC> const&, const TracksMC&) {
       
-      Produces<aod::HfCandProngSigmaCMCRec> rowMCMatchSigmaCRec;
-      Produces<aod::HfCandProngSigmaCMCGen> rowMCMatchSigmaCGen;
+      Produces<aod::HfCandSigmaCMCRec> rowMCMatchSigmaCRec;
+      Produces<aod::HfCandSigmaCMCGen> rowMCMatchSigmaCGen;
 
       int indexRec = -1;
       int8_t sign = 0;
