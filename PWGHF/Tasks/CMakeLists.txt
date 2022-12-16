@@ -59,6 +59,11 @@ o2physics_add_dpl_workflow(task-lc
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
                     COMPONENT_NAME Analysis)
 
+o2physics_add_dpl_workflow(task-sigmac
+                    SOURCES taskSigmac.cxx
+                    PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
+                    COMPONENT_NAME Analysis)
+
 o2physics_add_dpl_workflow(task-jpsi
                     SOURCES taskJpsi.cxx
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
