@@ -1624,7 +1624,8 @@ enum DecayType { Sigmac0ToPKPiPi = 0,
 template <typename T>
 auto invMassScRecoLcToPKPi(const T& candidate)
 {
-  auto candLc = candidate.prong0_as<aod::HfCand3Prong>();
+  //auto candLc = candidate.prongLc_as<aod::HfCand3Prong>();
+  auto candLc = candidate.prongLc();
   return candidate.m(array{hf_cand_3prong::invMassLcToPKPi(candLc), RecoDecay::getMassPDG(kPiPlus)});
 }
 
@@ -1632,7 +1633,8 @@ auto invMassScRecoLcToPKPi(const T& candidate)
 template <typename T>
 auto invMassScRecoLcToPiKP(const T& candidate)
 {
-  auto candLc = candidate.prong0_as<aod::HfCand3Prong>();
+  //auto candLc = candidate.prongLc_as<aod::HfCand3Prong>();
+  auto candLc = candidate.prongLc();
   return candidate.m(array{hf_cand_3prong::invMassLcToPiKP(candLc), RecoDecay::getMassPDG(kPiPlus)});
 }
 
@@ -1649,6 +1651,11 @@ auto yScPlusPlus(const T& candidate)
 }
 
 } // namespace hf_cand_sc
+
+namespace hf_track_index
+{
+DECLARE_SOA_INDEX_COLUMN_FULL(ProngLc, prongLc, int, HfCand3Prong, ""); //! Index to a Lc prong
+} // namespace hf_track_index
 
 // declare dedicated Σc0,++ decay candidate table
 // NB: no topology for Σc0, ++ (strong decay)
@@ -1671,7 +1678,8 @@ DECLARE_SOA_TABLE(HfCandSigmac, "AOD", "HFCANDSIGMAc",
                   hf_cand::PxProng1, hf_cand::PyProng1, hf_cand::PzProng1,
                   // hf_cand::ImpactParameter0, hf_cand::ImpactParameter1,
                   // hf_cand::ErrorImpactParameter0, hf_cand::ErrorImpactParameter1,
-                  hf_cand_sc::Prong0Id, hf_track_index::Prong1Id,
+                  //hf_cand_sc::Prong0Id, hf_track_index::Prong1Id,
+                  hf_track_index::ProngLcId, hf_track_index::Prong1Id,
                   hf_track_index::HFflag,
                   /* Σc0,++ specific columns */
                   hf_cand_sc::Charge,
