@@ -38,6 +38,8 @@
 #include "PWGHF/Utils/utilsBfieldCCDB.h"
 
 #include <algorithm>
+#include <utility>
+#include <tuple>
 
 using namespace o2;
 using namespace o2::framework;
@@ -300,6 +302,28 @@ struct HfTrackIndexSkimCreatorProduceAmbTracks {
     o2::dataformats::VertexBase vtx;
 
     /// fill the table with ambiguous tracks
+    ///  - first: collision.globalIndex()
+    ///  - second:
+    ///     [0]: track.globalIndex()
+    ///     [1]: BIT(hf_amb_tracks::Ambiguous) or BIT(hf_amb_tracks::PVcontributor)
+    ///     [2]: trackParCov.getX()
+    ///     [3]: trackParCov.getAlpha()
+    ///     [4]: trackParCov.getY()
+    ///     [5]: trackParCov.getZ()
+    ///     [6]: trackParCov.getSnp()
+    ///     [7]: trackParCov.getTgl()
+    ///     [8]: trackParCov.getQ2Pt()
+    ///     [9]: dcaInfoCov.getY()
+    ///     [10]: dcaInfoCov.getZ()
+    ///     [11]: std::sqrt(trackParCov.getSigmaY2())
+    ///     [12]: std::sqrt(trackParCov.getSigmaZ2())
+    ///     [13]: std::sqrt(trackParCov.getSigmaSnp2())
+    ///     [14]: std::sqrt(trackParCov.getSigmaTgl2())
+    ///     [15]: std::sqrt(trackParCov.getSigma1Pt2())
+    std::vector<std::pair<int64_t,
+                          std::tuple<int64_t, int8_t, float, float, float, float, float, float, float, float, float, float, float, float, float, float>>>
+      vBufferAmbTracks{};
+
     for (auto& ambitrack : ambitracks) {
       auto track = ambitrack.track_as<TracksWithSel>(); // Obtain the corresponding track
 
@@ -322,13 +346,15 @@ struct HfTrackIndexSkimCreatorProduceAmbTracks {
               o2::base::Propagator::Instance()->propagateToDCABxByBz(vtx, trackParCov, 2.f, matCorr, &dcaInfoCov);
 
               // fill tables
-              ambTrack(track.globalIndex(), collision.globalIndex(), BIT(hf_amb_tracks::Ambiguous), // fill the tacle with this track, as ambiguous
-                       trackParCov.getX(), trackParCov.getAlpha(),
-                       trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(),
-                       trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ());
-
-              ambTrackCov(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),
-                          std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              // ambTrack(track.globalIndex(), collision.globalIndex(), BIT(hf_amb_tracks::Ambiguous), // fill the tacle with this track, as ambiguous
+              //  trackParCov.getX(), trackParCov.getAlpha(),
+              //  trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(),
+              //  trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ());
+              //
+              // ambTrackCov(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),
+              // std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              vBufferAmbTracks.push_back(std::make_pair(collision.globalIndex(),
+                                                        std::make_tuple(track.globalIndex(), BIT(hf_amb_tracks::Ambiguous), trackParCov.getX(), trackParCov.getAlpha(), trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(), trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ(), std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()), std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()))));
             }
           }
         }
@@ -376,18 +402,37 @@ struct HfTrackIndexSkimCreatorProduceAmbTracks {
               o2::base::Propagator::Instance()->propagateToDCABxByBz(vtx, trackParCov, 2.f, matCorr, &dcaInfoCov);
 
               /// Fill the table with this track propagated to the new collisions
-              ambTrack(track.globalIndex(), collision.globalIndex(), BIT(hf_amb_tracks::PVContributor), // fill the tacle with this track, as PV contributor
-                       trackParCov.getX(), trackParCov.getAlpha(),
-                       trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(),
-                       trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ());
-              ambTrackCov(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),
-                          std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              // ambTrack(track.globalIndex(), collision.globalIndex(), BIT(hf_amb_tracks::PVContributor), // fill the tacle with this track, as PV contributor
+              //  trackParCov.getX(), trackParCov.getAlpha(),
+              //  trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(),
+              //  trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ());
+              // ambTrackCov(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),
+              // std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              vBufferAmbTracks.push_back(std::make_pair(collision.globalIndex(),
+                                                        std::make_tuple(track.globalIndex(), BIT(hf_amb_tracks::PVContributor), trackParCov.getX(), trackParCov.getAlpha(), trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(), trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ(), std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()), std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()))));
             } /// end second loop on collIDs
           }
         } /// end loop on tracks of the current collision
       }   /// end first loop on collIDs
 
     } /// end loop on bcs
+
+    /// sort the vector by collision index
+      std::sort(vBufferAmbTracks.begin(), vBufferAmbTracks.end(), [](std::pair<int64_t, std::tuple<int64_t, int8_t, float, float, float, float, float, float, float, float, float, float, float, float, float, float>>& a, std::pair<int64_t, std::tuple<int64_t, int8_t, float, float, float, float, float, float, float, float, float, float, float, float, float, float>>& b) { return a.first < b.first; });
+
+      /// fill the tables with collision ordering
+      for (auto& track : vBufferAmbTracks) {
+        LOG(info) << ">>> track.first = " << track.first;
+        ambTrack(std::get<0>(track.second), track.first, std::get<1>(track.second), std::get<2>(track.second), std::get<3>(track.second), std::get<4>(track.second), std::get<5>(track.second), std::get<6>(track.second), std::get<7>(track.second), std::get<8>(track.second), std::get<9>(track.second), std::get<10>(track.second));
+        ambTrackCov(std::get<11>(track.second), std::get<12>(track.second), std::get<13>(track.second), std::get<14>(track.second), std::get<15>(track.second), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+        // collision.globalIndex(), BIT(hf_amb_tracks::PVContributor), // fill the tacle with this track, as PV contributor
+        //   trackParCov.getX(), trackParCov.getAlpha(),
+        //   trackParCov.getY(), trackParCov.getZ(), trackParCov.getSnp(), trackParCov.getTgl(),
+        //   trackParCov.getQ2Pt(), dcaInfoCov.getY(), dcaInfoCov.getZ());
+        //  ambTrackCov(std::sqrt(trackParCov.getSigmaY2()), std::sqrt(trackParCov.getSigmaZ2()), std::sqrt(trackParCov.getSigmaSnp2()),
+        //  std::sqrt(trackParCov.getSigmaTgl2()), std::sqrt(trackParCov.getSigma1Pt2()), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      }
   }
 
   PROCESS_SWITCH(HfTrackIndexSkimCreatorProduceAmbTracks, processAmbTrack, "Activate process that fills ambiguous track table", false);
