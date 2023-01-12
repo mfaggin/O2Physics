@@ -299,6 +299,8 @@ struct qaEventTrack {
     histos.add("Tracks/dcaZvsPt", "distance of closest approach in #it{z};#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaXYvsPtPvContr", "distance of closest approach in #it{xy} plane for PV contributors;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaZvsPtPvContr", "distance of closest approach in #it{z} plane for PV contributors;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtPvContrEvContrGtr6", "distance of closest approach in #it{xy} plane for PV contributors in events with nContrib>=6;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtPvContrEvContrGtr6", "distance of closest approach in #it{z} plane for PV contributors in events with nContrib>=6;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaXYvsPtEvContrGtr6", "distance of closest approach in #it{xy} plane for events with nContrib>=6;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaZvsPtEvContrGtr6", "distance of closest approach in #it{z} plane for events with nContrib>=6;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaXYvsPtnoTRD", "distance of closest approach in #it{xy} plane in events w/o TRD tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
@@ -1123,6 +1125,10 @@ void qaEventTrack::fillRecoHistogramsGroupedTracks(const C& collision, const T& 
     if (collision.numContrib() >= 6) {
       histos.fill(HIST("Tracks/dcaXYvsPtEvContrGtr6"), track.dcaXY(), track.pt());
       histos.fill(HIST("Tracks/dcaZvsPtEvContrGtr6"), track.dcaZ(), track.pt());
+      if (track.isPVContributor()) {
+        histos.fill(HIST("Tracks/dcaXYvsPtPvContrEvContrGtr6"), track.dcaXY(), track.pt());
+        histos.fill(HIST("Tracks/dcaZvsPtPvContrEvContrGtr6"), track.dcaZ(), track.pt());
+      }
     }
     if (track.isPVContributor()) {
       histos.fill(HIST("Tracks/dcaXYvsPtPvContr"), track.dcaXY(), track.pt());
