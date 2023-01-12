@@ -297,6 +297,22 @@ struct qaEventTrack {
 
     histos.add("Tracks/dcaXYvsPt", "distance of closest approach in #it{xy} plane;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
     histos.add("Tracks/dcaZvsPt", "distance of closest approach in #it{z};#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtPvContr", "distance of closest approach in #it{xy} plane for PV contributors;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtPvContr", "distance of closest approach in #it{z} plane for PV contributors;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtEvContrGtr6", "distance of closest approach in #it{xy} plane for events with nContrib>=6;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtEvContrGtr6", "distance of closest approach in #it{z} plane for events with nContrib>=6;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtnoTRD", "distance of closest approach in #it{xy} plane in events w/o TRD tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtnoTRD", "distance of closest approach in #it{z} in events w/o TRD tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtPvContrNoTRD", "distance of closest approach in #it{xy} plane for PV contributors in events w/o TRD tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtPvContrNoTRD", "distance of closest approach in #it{z} plane for PV contributors in events w/o TRD tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtnoTOF", "distance of closest approach in #it{xy} plane in events w/o TOF tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtnoTOF", "distance of closest approach in #it{z} in events w/o TOF tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtPvContrNoTOF", "distance of closest approach in #it{xy} plane for PV contributors in events w/o TOF tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtPvContrNoTOF", "distance of closest approach in #it{z} plane for PV contributors in events w/o TOF tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtnoTOFTRD", "distance of closest approach in #it{xy} plane in events w/o TOF and w/o TRD tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtnoTOFTRD", "distance of closest approach in #it{z} in events w/o TOF and w/o TRD tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaXYvsPtPvContrNoTOFTRD", "distance of closest approach in #it{xy} plane for PV contributors in events w/o TOF and w/o TRD tracks;#it{dcaXY} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
+    histos.add("Tracks/dcaZvsPtPvContrNoTOFTRD", "distance of closest approach in #it{z} plane for PV contributors in events w/o TOF and w/o TRD tracks;#it{dcaZ} [cm];", kTH2D, {{200, -0.15, 0.15}, axisPt});
 
     histos.add("Tracks/length", "track length in cm;#it{Length} [cm];", kTH1D, {{400, 0, 1000}});
 
@@ -317,6 +333,9 @@ struct qaEventTrack {
     histos.add("Tracks/TPC/tpcCrossedRowsOverFindableCls", "crossed TPC rows over findable clusters;crossed rows / findable clusters TPC", kTH1D, {{60, 0.7, 1.3}});
     histos.add("Tracks/TPC/tpcChi2NCl", "chi2 per cluster in TPC;chi2 / cluster TPC", kTH1D, {{100, 0, 10}});
     histos.add("Tracks/TPC/hasTPC", "pt distribution of tracks crossing TPC", kTH1D, {axisPt});
+
+    histos.add("Tracks/TOF/hasTOF", "pt distribution of tracks crossing TOF", kTH1D, {axisPt});
+    histos.add("Tracks/TRD/hasTRD", "pt distribution of tracks crossing TRD", kTH1D, {axisPt});
 
     // tracks vs tracks @ IU
     if (doprocessDataIU) {
@@ -1024,6 +1043,8 @@ void qaEventTrack::fillRecoHistogramsGroupedTracks(const C& collision, const T& 
   // unfiltered track related histograms
   int nPvContrWithTOF = 0;
   int nPvContrWithTRD = 0;
+  bool evHasTRD = false;
+  bool evHasTOF = false;
   for (const auto& trackUnfiltered : tracksUnfiltered) {
     // fill ITS variables
     int itsNhits = 0;
@@ -1052,6 +1073,14 @@ void qaEventTrack::fillRecoHistogramsGroupedTracks(const C& collision, const T& 
       if (trackUnfiltered.hasTRD()) {
         nPvContrWithTRD++;
       }
+    }
+
+    /// check if the event has TRD, TOF matched tracks
+    if (trackUnfiltered.hasTRD()) {
+      evHasTRD = true;
+    }
+    if (trackUnfiltered.hasTOF()) {
+      evHasTOF = true;
     }
   }
   histos.fill(HIST("Events/nContribWithTOFvsWithTRD"), nPvContrWithTOF, nPvContrWithTRD);
@@ -1089,6 +1118,41 @@ void qaEventTrack::fillRecoHistogramsGroupedTracks(const C& collision, const T& 
     histos.fill(HIST("Tracks/dcaXYvsPt"), track.dcaXY(), track.pt());
     histos.fill(HIST("Tracks/dcaZvsPt"), track.dcaZ(), track.pt());
     histos.fill(HIST("Tracks/length"), track.length());
+
+    // if (track.itsNCls() == 7) {
+    if (collision.numContrib() >= 6) {
+      histos.fill(HIST("Tracks/dcaXYvsPtEvContrGtr6"), track.dcaXY(), track.pt());
+      histos.fill(HIST("Tracks/dcaZvsPtEvContrGtr6"), track.dcaZ(), track.pt());
+    }
+    if (track.isPVContributor()) {
+      histos.fill(HIST("Tracks/dcaXYvsPtPvContr"), track.dcaXY(), track.pt());
+      histos.fill(HIST("Tracks/dcaZvsPtPvContr"), track.dcaZ(), track.pt());
+      if (!evHasTRD) {
+        histos.fill(HIST("Tracks/dcaXYvsPtPvContrNoTRD"), track.dcaXY(), track.pt());
+        histos.fill(HIST("Tracks/dcaZvsPtPvContrNoTRD"), track.dcaZ(), track.pt());
+        if (!evHasTOF) {
+          histos.fill(HIST("Tracks/dcaXYvsPtPvContrNoTOFTRD"), track.dcaXY(), track.pt());
+          histos.fill(HIST("Tracks/dcaZvsPtPvContrNoTOFTRD"), track.dcaZ(), track.pt());
+        }
+      }
+      if (!evHasTOF) {
+        histos.fill(HIST("Tracks/dcaXYvsPtPvContrNoTOF"), track.dcaXY(), track.pt());
+        histos.fill(HIST("Tracks/dcaZvsPtPvContrNoTOF"), track.dcaZ(), track.pt());
+      }
+    }
+    //}
+    if (!evHasTRD) {
+      histos.fill(HIST("Tracks/dcaXYvsPtnoTRD"), track.dcaXY(), track.pt());
+      histos.fill(HIST("Tracks/dcaZvsPtnoTRD"), track.dcaZ(), track.pt());
+      if (!evHasTOF) {
+        histos.fill(HIST("Tracks/dcaXYvsPtnoTOFTRD"), track.dcaXY(), track.pt());
+        histos.fill(HIST("Tracks/dcaZvsPtnoTOFTRD"), track.dcaZ(), track.pt());
+      }
+    }
+    if (!evHasTOF) {
+      histos.fill(HIST("Tracks/dcaXYvsPtnoTOF"), track.dcaXY(), track.pt());
+      histos.fill(HIST("Tracks/dcaZvsPtnoTOF"), track.dcaZ(), track.pt());
+    }
 
     // fill ITS variables
     histos.fill(HIST("Tracks/ITS/itsNCls"), track.itsNCls());
@@ -1142,6 +1206,12 @@ void qaEventTrack::fillRecoHistogramsGroupedTracks(const C& collision, const T& 
     }
     if (track.hasITS() && track.hasTPC()) {
       histos.fill(HIST("Tracks/ITS/hasITSANDhasTPC"), track.pt());
+    }
+    if (track.hasTOF()) {
+      histos.fill(HIST("Tracks/TOF/hasTOF"), track.pt());
+    }
+    if (track.hasTRD()) {
+      histos.fill(HIST("Tracks/TRD/hasTRD"), track.pt());
     }
   }
 }
