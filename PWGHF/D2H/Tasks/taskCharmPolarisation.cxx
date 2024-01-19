@@ -126,9 +126,10 @@ struct TaskPolarisationCharmHadrons {
       float rapidity{-999.};
       std::array<float, 3> outputMl{};
 
-      // Dstar analysis
-      // polarization measured from the soft-pion daughter (*)
       if constexpr (channel == charm_polarisation::DecayChannel::DstarToDzeroPi) {
+        // Dstar analysis
+        // polarization measured from the soft-pion daughter (*)
+        
         pxDau = candidate.pxSoftPi();
         pyDau = candidate.pySoftPi();
         pzDau = candidate.pzSoftPi();
@@ -145,11 +146,9 @@ struct TaskPolarisationCharmHadrons {
           outputMl[1] = -1.; // not yet implemented in the selector
           outputMl[2] = -1.; // not yet implemented in the selector
         }
-      } // Dstar
-
-      // Lc->pKpi analysis
-      // polarization measured from the proton daughter (*)
-      else if constexpr (channel == charm_polarisation::DecayChannel::LcToPKPi) {
+      } else if constexpr (channel == charm_polarisation::DecayChannel::LcToPKPi) {
+        // Lc->pKpi analysis
+        // polarization measured from the proton daughter (*)
 
         // reconstructed as pKpi
         if (iMass == charm_polarisation::MassHyposLcToPKPi::PKPi && candidate.isSelLcToPKPi() >= selectionFlagLcToPKPi) {
