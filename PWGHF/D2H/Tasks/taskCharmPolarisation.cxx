@@ -129,7 +129,7 @@ struct TaskPolarisationCharmHadrons {
       if constexpr (channel == charm_polarisation::DecayChannel::DstarToDzeroPi) {
         // Dstar analysis
         // polarization measured from the soft-pion daughter (*)
-        
+
         pxDau = candidate.pxSoftPi();
         pyDau = candidate.pySoftPi();
         pzDau = candidate.pzSoftPi();
