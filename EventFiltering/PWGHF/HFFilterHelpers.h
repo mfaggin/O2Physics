@@ -814,7 +814,7 @@ inline int8_t HfFilterHelper::isSelectedSigmaCInDeltaMassRange(const T& pTrackSa
     if (mDeltaMassMinSigmaC < deltaMassPKPi && deltaMassPKPi < mDeltaMassMaxSigmaC) {
       retValue |= BIT(0);
       /// QA plot
-      if(activateQA) {
+      if (activateQA) {
         hMassVsPt->Fill(ptSigmaC, deltaMassPKPi);
       }
     }
@@ -828,7 +828,7 @@ inline int8_t HfFilterHelper::isSelectedSigmaCInDeltaMassRange(const T& pTrackSa
     if (mDeltaMassMinSigmaC < deltaMassPiKP && deltaMassPiKP < mDeltaMassMaxSigmaC) {
       retValue |= BIT(1);
       /// QA plot
-      if(activateQA) {
+      if (activateQA) {
         hMassVsPt->Fill(ptSigmaC, deltaMassPiKP);
       }
     }

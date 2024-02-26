@@ -925,16 +925,15 @@ struct HfFilter { // Main struct for HF triggers
 
                 // check the mass of the SigmaC++ candidate
                 auto pVecSigmaC = RecoDecay::pVec(pVecFirst, pVecSecond, pVecThird, pVecSoftPi);
-                auto ptSigmaC= RecoDecay::pt(pVecSigmaC);
-                if (!helper.isSelectedSigmaCInDeltaMassRange(pVecFirst, pVecThird, pVecSecond, pVecSoftPi, ptSigmaC, is3Prong[2], hMassVsPtC[kNCharmParticles + 9], activateQA))
-                {
+                auto ptSigmaC = RecoDecay::pt(pVecSigmaC);
+                if (!helper.isSelectedSigmaCInDeltaMassRange(pVecFirst, pVecThird, pVecSecond, pVecSoftPi, ptSigmaC, is3Prong[2], hMassVsPtC[kNCharmParticles + 9], activateQA)) {
                   /// let's build a candidate SigmaC++K- pair
                   /// and keep it only if:
                   ///   - it has the correct charge (±1)
                   ///   - it is in the correct mass range
-                  
+
                   // check the charge for SigmaC++K- candidates
-                  if( std::abs(chargeSc + track.sign()) != 1 ) {
+                  if (std::abs(chargeSc + track.sign()) != 1) {
                     continue;
                   }
 
@@ -944,14 +943,14 @@ struct HfFilter { // Main struct for HF triggers
 
                   // check the invariant mass
                   std::array<float, 3> pVecSigmaC = RecoDecay::pVec(pVecFirst, pVecSecond, pVecThird, pVecSoftPi);
-                  float massSigmaCKaonPair = RecoDecay::m( std::array{pVecSigmaC, pVecFourth}, std::array{massSigmaCPlusPlus, massKa} );
-                  if(massMinSigmaCKaonPair < massSigmaCKaonPair && massSigmaCKaonPair < massMaxSigmaCKaonPair) {
+                  float massSigmaCKaonPair = RecoDecay::m(std::array{pVecSigmaC, pVecFourth}, std::array{massSigmaCPlusPlus, massKa});
+                  if (massMinSigmaCKaonPair < massSigmaCKaonPair && massSigmaCKaonPair < massMaxSigmaCKaonPair) {
                     /// This is a good SigmaC++K- event
                     /// Let's flag it together with SigmaC0K0s
                     keepEvent[kV0Charm3P] = true;
 
                     /// QA plot
-                    if(activateQA) {
+                    if (activateQA) {
                       float ptSigmaCKaon = RecoDecay::pt(pVecSigmaC, pVecFourth);
                       hMassVsPtC[kNCharmParticles + 9]->Fill(ptSigmaCKaon, massSigmaCKaonPair);
                     }
