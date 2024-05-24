@@ -72,15 +72,14 @@ void setLabelHistoEvSel(Histo& hCollisions)
 /// \return a bitmask with the event selections not satisfied by the analysed collision
 template <bool applyEvSel, o2::aod::hf_collision_centrality::CentralityEstimator centEstimator, typename Coll>
 uint16_t getHfCollisionRejectionMask(const Coll& collision, float& centrality, float centralityMin, float centralityMax,
-  bool useSel8Trigger,
-  int triggerClass,
-  bool useTimeFrameBorderCut,
-  float zPvPosMin, float zPvPosMax,
-  int nPvContributorsMin,
-  float chi2PvMax,
-  bool useIsGoodZvtxFT0vsPV, bool useNoSameBunchPileup,
-  bool useNumTracksInTimeRange, int numTracksInTimeRangeMin, int numTracksInTimeRangeMax
-  )
+                                     bool useSel8Trigger,
+                                     int triggerClass,
+                                     bool useTimeFrameBorderCut,
+                                     float zPvPosMin, float zPvPosMax,
+                                     int nPvContributorsMin,
+                                     float chi2PvMax,
+                                     bool useIsGoodZvtxFT0vsPV, bool useNoSameBunchPileup,
+                                     bool useNumTracksInTimeRange, int numTracksInTimeRangeMin, int numTracksInTimeRangeMax)
 {
 
   uint16_t statusCollision{0}; // 16 bits, in case new ev. selections will be added
