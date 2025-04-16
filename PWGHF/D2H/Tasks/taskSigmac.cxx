@@ -30,7 +30,9 @@ using namespace o2::framework;
 
 namespace o2::hf_sigmactask
 {
-  enum species : int {Sc2455 = 0, Sc2520, NSpecies};
+enum species : int { Sc2455 = 0,
+                     Sc2520,
+                     NSpecies };
 };
 
 struct HfTaskSigmac {
@@ -267,7 +269,7 @@ struct HfTaskSigmac {
       const AxisSpec thnAxisGenPtSigmaC{thnConfigAxisGenPt, "#it{p}_{T}^{gen}(#Sigma_{c}^{0,++}) (GeV/#it{c})"};
       const AxisSpec thnAxisGenPtLambdaCBMother{thnConfigAxisGenPtB, "#it{p}_{T}^{gen}(#Lambda_{c}^{+} B mother) (GeV/#it{c})"};
       const AxisSpec thnAxisGenPtSigmaCBMother{thnConfigAxisGenPtB, "#it{p}_{T}^{gen}(#Sigma_{c}^{0,++} B mother) (GeV/#it{c})"};
-      const AxisSpec thnAxisGenSigmaCSpecies = {o2::hf_sigmactask::species::NSpecies, -0.5f, + o2::hf_sigmactask::species::NSpecies - 0.5f, "bin 1: #Sigma_{c}(2455), bin 2: #Sigma_{c}(2520)"};
+      const AxisSpec thnAxisGenSigmaCSpecies = {o2::hf_sigmactask::species::NSpecies, -0.5f, +o2::hf_sigmactask::species::NSpecies - 0.5f, "bin 1: #Sigma_{c}(2455), bin 2: #Sigma_{c}(2520)"};
       std::vector<AxisSpec> axesLambdaCWithMl = {thnAxisPtLambdaC, thnAxisMassLambdaC, thnAxisBdtScoreLcBkg, thnAxisBdtScoreLcNonPrompt, thnAxisOriginMc, thnAxisChannel};
       std::vector<AxisSpec> axesSigmaCWithMl = {thnAxisPtLambdaC, axisDeltaMassSigmaC, thnAxisBdtScoreLcBkg, thnAxisBdtScoreLcNonPrompt, thnAxisOriginMc, thnAxisChannel, thnAxisPtSigmaC, thnAxisChargeSigmaC};
       std::vector<AxisSpec> axesLambdaCWoMl = {thnAxisPtLambdaC, thnAxisMassLambdaC, thnAxisDecLength, thnAxisDecLengthXY, thnAxisCPA, thnAxisCPAXY, thnAxisOriginMc, thnAxisChannel};
@@ -585,7 +587,7 @@ struct HfTaskSigmac {
       */
       if (yCandGenMax >= 0.) {
         double mass = -1;
-        if(isSc0Gen) {
+        if (isSc0Gen) {
           mass = o2::constants::physics::MassSigmaC0;
         } else if (isScPlusPlusGen) {
           mass = o2::constants::physics::MassSigmaCPlusPlus;
@@ -644,9 +646,9 @@ struct HfTaskSigmac {
 
       /// Fill histograms
       int sigmacSpecies = -1;
-      if(isSc0Gen || isScPlusPlusGen) {
+      if (isSc0Gen || isScPlusPlusGen) {
         sigmacSpecies = o2::hf_sigmactask::Sc2455;
-      } else if(isScStar0Gen || isScStarPlusPlusGen) {
+      } else if (isScStar0Gen || isScStarPlusPlusGen) {
         sigmacSpecies = o2::hf_sigmactask::Sc2520;
       }
       if (isSc0Gen || isScStar0Gen) {
@@ -743,8 +745,8 @@ struct HfTaskSigmac {
     for (const auto& candSc : candidatesSc) {
 
       /// Candidate selected as Σc0 and/or Σc++
-      if (!(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::Sc0ToPKPiPi) && !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScplusplusToPKPiPi) &&  // Σc0,++(2455)
-          !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScStar0ToPKPiPi) && !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScStarPlusPlusToPKPiPi)) {  // Σc0,++(2520)
+      if (!(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::Sc0ToPKPiPi) && !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScplusplusToPKPiPi) &&         // Σc0,++(2455)
+          !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScStar0ToPKPiPi) && !(candSc.hfflag() & 1 << aod::hf_cand_sigmac::DecayType::ScStarPlusPlusToPKPiPi)) { // Σc0,++(2520)
         continue;
       }
       /// rapidity selection on Σc0,++
@@ -772,7 +774,7 @@ struct HfTaskSigmac {
         /// Reconstructed Σc0 signal
         // Get the corresponding MC particle for Sc, found as the mother of the soft pion
         int indexMcScRec = -1;
-        if(isTrueSc0Reco) {
+        if (isTrueSc0Reco) {
           // Σc0(2455)
           indexMcScRec = RecoDecay::getMother(mcParticles, candSc.prong1_as<aod::TracksWMc>().mcParticle(), o2::constants::physics::Pdg::kSigmaC0, true);
           sigmacSpecies = o2::hf_sigmactask::Sc2455;
@@ -956,7 +958,7 @@ struct HfTaskSigmac {
         /// Reconstructed Σc++ signal
         // Get the corresponding MC particle for Sc, found as the mother of the soft pion
         int indexMcScRec = -1;
-        if(isTrueSc0Reco) {
+        if (isTrueSc0Reco) {
           // Σc0(2455)
           indexMcScRec = RecoDecay::getMother(mcParticles, candSc.prong1_as<aod::TracksWMc>().mcParticle(), o2::constants::physics::Pdg::kSigmaCPlusPlus, true);
           sigmacSpecies = o2::hf_sigmactask::Sc2455;
