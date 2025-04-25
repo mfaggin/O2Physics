@@ -356,7 +356,7 @@ struct HfCandidateCreator3Prong {
                        std::sqrt(impactParameter0.getSigmaZ2()), std::sqrt(impactParameter1.getSigmaZ2()), std::sqrt(impactParameter2.getSigmaZ2()),
                        rowTrackIndexProng3.prong0Id(), rowTrackIndexProng3.prong1Id(), rowTrackIndexProng3.prong2Id(), nProngsContributorsPV, bitmapProngsContributorsPV,
                        rowTrackIndexProng3.hfflag());
-      
+
       // fill candidate prong PID rows
       fillProngPid<HfProngSpecies::Pion>(track0, rowProng0PidPi);
       fillProngPid<HfProngSpecies::Kaon>(track0, rowProng0PidKa);
