@@ -79,10 +79,10 @@ struct HfDerivedDataCreatorDplusToPiKPi {
   using CollisionsWCentMult = soa::Join<aod::Collisions, aod::CentFV0As, aod::CentFT0Ms, aod::CentFT0As, aod::CentFT0Cs, aod::PVMultZeqs>;
   using CollisionsWMcCentMult = soa::Join<aod::Collisions, aod::McCollisionLabels, aod::CentFV0As, aod::CentFT0Ms, aod::CentFT0As, aod::CentFT0Cs, aod::PVMultZeqs>;
   using TracksWPid = soa::Join<aod::Tracks, aod::TracksPidPi, aod::PidTpcTofFullPi, aod::TracksPidKa, aod::PidTpcTofFullKa>;
-  using SelectedCandidates = soa::Filtered<soa::Join<aod::HfCand3Prong, aod::HfSelDplusToPiKPi>>;
-  using SelectedCandidatesMc = soa::Filtered<soa::Join<aod::HfCand3Prong, aod::HfCand3ProngMcRec, aod::HfSelDplusToPiKPi>>;
-  using SelectedCandidatesMl = soa::Filtered<soa::Join<aod::HfCand3Prong, aod::HfSelDplusToPiKPi, aod::HfMlDplusToPiKPi>>;
-  using SelectedCandidatesMcMl = soa::Filtered<soa::Join<aod::HfCand3Prong, aod::HfCand3ProngMcRec, aod::HfSelDplusToPiKPi, aod::HfMlDplusToPiKPi>>;
+  using SelectedCandidates = soa::Filtered<soa::Join<aod::HfCand3ProngWPid, aod::HfSelDplusToPiKPi>>;
+  using SelectedCandidatesMc = soa::Filtered<soa::Join<aod::HfCand3ProngWPid, aod::HfCand3ProngMcRec, aod::HfSelDplusToPiKPi>>;
+  using SelectedCandidatesMl = soa::Filtered<soa::Join<aod::HfCand3ProngWPid, aod::HfSelDplusToPiKPi, aod::HfMlDplusToPiKPi>>;
+  using SelectedCandidatesMcMl = soa::Filtered<soa::Join<aod::HfCand3ProngWPid, aod::HfCand3ProngMcRec, aod::HfSelDplusToPiKPi, aod::HfMlDplusToPiKPi>>;
   using MatchedGenCandidatesMc = soa::Filtered<soa::Join<aod::McParticles, aod::HfCand3ProngMcGen>>;
   using TypeMcCollisions = soa::Join<aod::McCollisions, aod::McCentFT0Ms>;
 
@@ -139,15 +139,15 @@ struct HfDerivedDataCreatorDplusToPiKPi {
         candidate.impactParameterNormalised0(),
         candidate.impactParameterNormalised1(),
         candidate.impactParameterNormalised2(),
-        prong0.tpcNSigmaPi(),
-        prong0.tofNSigmaPi(),
-        prong0.tpcTofNSigmaPi(),
-        prong1.tpcNSigmaKa(),
-        prong1.tofNSigmaKa(),
-        prong1.tpcTofNSigmaKa(),
-        prong2.tpcNSigmaPi(),
-        prong2.tofNSigmaPi(),
-        prong2.tpcTofNSigmaPi());
+        candidate.nSigTpcPi0(),
+        candidate.nSigTofPi0(),
+        candidate.tpcTofNSigmaPi0(),
+        candidate.nSigTpcKa1(),
+        candidate.nSigTofKa1(),
+        candidate.tpcTofNSigmaKa1(),
+        candidate.nSigTpcPi0(),
+        candidate.nSigTofPi0(),
+        candidate.tpcTofNSigmaPi0());
     }
     if (fillCandidateParE) {
       rowCandidateParE(
