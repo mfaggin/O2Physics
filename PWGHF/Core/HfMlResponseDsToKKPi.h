@@ -84,13 +84,13 @@
 // Variation of CHECK_AND_FILL_VEC_DS_OBJECT_SIGNED(OBJECT, FEATURE, GETTER1, GETTER2)
 // where GETTER1 and GETTER2 are methods of the OBJECT
 #define CHECK_AND_FILL_VEC_DS_SIGNED(OBJECT, FEATURE, GETTER1, GETTER2) \
-case static_cast<uint8_t>(InputFeaturesDsToKKPi::FEATURE): {                \
-  if (caseDsToKKPi) {                                                       \
-    inputFeatures.emplace_back(OBJECT.GETTER1());                           \
-  } else {                                                                  \
-    inputFeatures.emplace_back(OBJECT.GETTER2());                           \
-  }                                                                         \
-  break;                                                                    \
+case static_cast<uint8_t>(InputFeaturesDsToKKPi::FEATURE): {            \
+  if (caseDsToKKPi) {                                                   \
+    inputFeatures.emplace_back(OBJECT.GETTER1());                       \
+  } else {                                                              \
+    inputFeatures.emplace_back(OBJECT.GETTER2());                       \
+  }                                                                     \
+  break;                                                                \
 }
 
 namespace o2::analysis
