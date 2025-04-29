@@ -2376,6 +2376,7 @@ DECLARE_SOA_EXTENDED_TABLE_USER(HfD0FromDstarExt, HfD0FromDstarBase, "HFD0FRMDST
                                 hf_cand_dstar::PxD0, hf_cand_dstar::PyD0, hf_cand_dstar::PzD0);
 
 using HfD0FromDstar = HfD0FromDstarExt;
+using HfD0FromDstarWPid = soa::Join<HfD0FromDstar, HfProng0PidPi, HfProng0PidKa, HfProng1PidPi, HfProng1PidKa>;
 
 DECLARE_SOA_TABLE(HfCandDstarBase, "AOD", "HFCANDDSTRBASE",
                   o2::soa::Index<>,

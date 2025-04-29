@@ -108,7 +108,7 @@ struct HfCandidateSelectorDstarToD0Pi {
 
   using TracksSel = soa::Join<aod::TracksWDcaExtra, aod::TracksPidPi, aod::PidTpcTofFullPi, aod::TracksPidKa, aod::PidTpcTofFullKa>;
   // using TracksSel = soa::Join<aod::Tracks, aod::TracksPidPi, aod::TracksPidKa>;
-  using HfFullDstarCandidate = soa::Join<aod::HfD0FromDstar, aod::HfCandDstars>;
+  using HfFullDstarCandidate = soa::Join<aod::HfD0FromDstarWPid, aod::HfCandDstars>;
 
   AxisSpec axisBdtScore{100, 0.f, 1.f};
   AxisSpec axisSelStatus{2, -0.5f, 1.5f};
@@ -418,15 +418,15 @@ struct HfCandidateSelectorDstarToD0Pi {
       int pidTrackNegPion = -1;
 
       if (usePidTpcAndTof) {
-        pidTrackPosKaon = selectorKaon.statusTpcAndTof(candDstar.prong0_as<TracksSel>());
-        pidTrackPosPion = selectorPion.statusTpcAndTof(candDstar.prong0_as<TracksSel>());
-        pidTrackNegKaon = selectorKaon.statusTpcAndTof(candDstar.prong1_as<TracksSel>());
-        pidTrackNegPion = selectorPion.statusTpcAndTof(candDstar.prong1_as<TracksSel>());
+        pidTrackPosKaon = selectorKaon.statusTpcAndTof(candDstar.prong0_as<TracksSel>(), candDstar.nSigTpcKa0(), candDstar.nSigTofKa0());
+        pidTrackPosPion = selectorPion.statusTpcAndTof(candDstar.prong0_as<TracksSel>(), candDstar.nSigTpcPi0(), candDstar.nSigTofPi0());
+        pidTrackNegKaon = selectorKaon.statusTpcAndTof(candDstar.prong1_as<TracksSel>(), candDstar.nSigTpcKa1(), candDstar.nSigTofKa1());
+        pidTrackNegPion = selectorPion.statusTpcAndTof(candDstar.prong1_as<TracksSel>(), candDstar.nSigTpcKa1(), candDstar.nSigTofKa1());
       } else {
-        pidTrackPosKaon = selectorKaon.statusTpcOrTof(candDstar.prong0_as<TracksSel>());
-        pidTrackPosPion = selectorPion.statusTpcOrTof(candDstar.prong0_as<TracksSel>());
-        pidTrackNegKaon = selectorKaon.statusTpcOrTof(candDstar.prong1_as<TracksSel>());
-        pidTrackNegPion = selectorPion.statusTpcOrTof(candDstar.prong1_as<TracksSel>());
+        pidTrackPosKaon = selectorKaon.statusTpcOrTof(candDstar.prong0_as<TracksSel>(), candDstar.nSigTpcKa0(), candDstar.nSigTofKa0());
+        pidTrackPosPion = selectorPion.statusTpcOrTof(candDstar.prong0_as<TracksSel>(), candDstar.nSigTpcPi0(), candDstar.nSigTofPi0());
+        pidTrackNegKaon = selectorKaon.statusTpcOrTof(candDstar.prong1_as<TracksSel>(), candDstar.nSigTpcKa1(), candDstar.nSigTofKa1());
+        pidTrackNegPion = selectorPion.statusTpcOrTof(candDstar.prong1_as<TracksSel>(), candDstar.nSigTpcKa1(), candDstar.nSigTofKa1());
       }
 
       int pidDstar = -1;
