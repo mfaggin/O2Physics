@@ -967,10 +967,10 @@ struct HfTreeCreatorLcToPKPi {
       rowCollisionId.reserve(candidates.size());
     }
     for (const auto& candidate : candidates) {
-      auto trackPos1 = candidate.template prong0_as<TracksWPid>(); // positive daughter (negative for the antiparticles)
+      float trackPos1Pt = candidate.ptProng0();
       auto collision = candidate.template collision_as<Colls>();
       auto fillTable = [&](int candFlag) {
-        double pseudoRndm = trackPos1.pt() * 1000. - static_cast<int64_t>(trackPos1.pt() * 1000);
+        double pseudoRndm = trackPos1Pt * 1000. - static_cast<int64_t>(trackPos1Pt * 1000);
         const int functionSelection = candFlag == 0 ? candidate.isSelLcToPKPi() : candidate.isSelLcToPiKP();
         if (functionSelection >= selectionFlagLc && (candidate.pt() > downSampleBkgPtMax || (pseudoRndm < downSampleBkgFactor && candidate.pt() < downSampleBkgPtMax))) {
           float functionInvMass, functionInvMassKPi;
