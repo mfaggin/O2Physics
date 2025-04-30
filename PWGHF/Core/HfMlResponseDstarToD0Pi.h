@@ -51,11 +51,11 @@
 
 // Specific case of CHECK_AND_FILL_VEC_DSTAR_FULL(OBJECT, FEATURE, GETTER)
 // where OBJECT is named candidate and FEATURE != GETTER
-#define CHECK_AND_FILL_VEC_DSTAR_GETTER(FEATURE, GETTER)                         \
-case static_cast<uint8_t>(InputFeaturesDstarToD0Pi::FEATURE): { \
-  inputFeatures.emplace_back(candidate.GETTER());              \
-  break;                                                       \
-}
+#define CHECK_AND_FILL_VEC_DSTAR_GETTER(FEATURE, GETTER)          \
+  case static_cast<uint8_t>(InputFeaturesDstarToD0Pi::FEATURE): { \
+    inputFeatures.emplace_back(candidate.GETTER());               \
+    break;                                                        \
+  }
 
 // Very specific case of CHECK_AND_FILL_VEC_DSTAR_FULL(OBJECT, FEATURE, GETTER)
 // Use for push back different value for D*+ or D*- candidate
