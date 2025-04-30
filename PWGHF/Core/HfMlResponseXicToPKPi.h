@@ -65,14 +65,14 @@
 // where GETTER1 and GETTER2 are methods of the OBJECT, and used
 // depending on whether the candidate is a XicToPKPi or a XicToPiKP
 #define CHECK_AND_FILL_VEC_XIC_SIGNED(OBJECT, FEATURE, GETTER1, GETTER2) \
-case static_cast<uint8_t>(InputFeaturesXicToPKPi::FEATURE): {            \
-  if (caseXicToPKPi) {                                                   \
-    inputFeatures.emplace_back(OBJECT.GETTER1());                        \
-  } else {                                                               \
-    inputFeatures.emplace_back(OBJECT.GETTER2());                        \
-  }                                                                      \
-  break;                                                                 \
-}
+  case static_cast<uint8_t>(InputFeaturesXicToPKPi::FEATURE): {          \
+    if (caseXicToPKPi) {                                                 \
+      inputFeatures.emplace_back(OBJECT.GETTER1());                      \
+    } else {                                                             \
+      inputFeatures.emplace_back(OBJECT.GETTER2());                      \
+    }                                                                    \
+    break;                                                               \
+  }
 
 namespace o2::analysis
 {
