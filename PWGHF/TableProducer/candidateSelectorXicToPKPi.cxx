@@ -364,11 +364,11 @@ struct HfCandidateSelectorXicToPKPi {
         bool isSelectedMlXicToPiKP = false;
 
         if (topolXicToPKPi && pidXicToPKPi) {
-          std::vector<float> inputFeaturesXicToPKPi = hfMlResponse.getInputFeatures(candidate, trackPos1, trackNeg, trackPos2, true);
+          std::vector<float> inputFeaturesXicToPKPi = hfMlResponse.getInputFeatures(candidate, true);
           isSelectedMlXicToPKPi = hfMlResponse.isSelectedMl(inputFeaturesXicToPKPi, ptCand, outputMlXicToPKPi);
         }
         if (topolXicToPiKP && pidXicToPiKP) {
-          std::vector<float> inputFeaturesXicToPiKP = hfMlResponse.getInputFeatures(candidate, trackPos1, trackNeg, trackPos2, false);
+          std::vector<float> inputFeaturesXicToPiKP = hfMlResponse.getInputFeatures(candidate, false);
           isSelectedMlXicToPiKP = hfMlResponse.isSelectedMl(inputFeaturesXicToPiKP, ptCand, outputMlXicToPiKP);
         }
 
