@@ -108,7 +108,7 @@ struct HfCandidateSelectorDstarToD0Pi {
 
   using TracksSel = soa::Join<aod::TracksWDcaExtra, aod::TracksPidPi, aod::PidTpcTofFullPi, aod::TracksPidKa, aod::PidTpcTofFullKa>;
   // using TracksSel = soa::Join<aod::Tracks, aod::TracksPidPi, aod::TracksPidKa>;
-  using HfFullDstarCandidate = soa::Join<aod::HfD0FromDstarWPid, aod::HfCandDstars>;
+  using HfFullDstarCandidate = soa::Join<aod::HfD0FromDstar, aod::HfCandDstarsWPid>;
 
   AxisSpec axisBdtScore{100, 0.f, 1.f};
   AxisSpec axisSelStatus{2, -0.5f, 1.5f};
@@ -465,7 +465,7 @@ struct HfCandidateSelectorDstarToD0Pi {
         // ML selections
         bool isSelectedMlDstar = false;
 
-        std::vector<float> inputFeatures = hfMlResponse.getInputFeatures(candDstar, prong0, prong1, prongPi);
+        std::vector<float> inputFeatures = hfMlResponse.getInputFeatures(candDstar);
         isSelectedMlDstar = hfMlResponse.isSelectedMl(inputFeatures, ptCand, outputMlDstarToD0Pi);
 
         hfMlDstarCandidate(outputMlDstarToD0Pi);

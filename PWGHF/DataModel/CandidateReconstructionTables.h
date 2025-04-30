@@ -2427,6 +2427,7 @@ DECLARE_SOA_EXTENDED_TABLE_USER(HfCandDstarExt, HfCandDstarBase, "HFCANDDSTREXT"
 
 using HfCandDstars = HfCandDstarExt;
 using HfCandDstar = HfCandDstars::iterator;
+using HfCandDstarsWPid = soa::Join<HfCandDstars, HfProng0PidPi, HfProng0PidKa, HfProng1PidPi, HfProng1PidKa, /*soft pion*/ HfProng2PidPi, /*soft pion*/ HfProng2PidKa>;
 
 // table with results of reconstruction level MC matching
 DECLARE_SOA_TABLE(HfCandDstarMcRec, "AOD", "HFCANDDSTRMCREC",

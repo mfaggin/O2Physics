@@ -59,6 +59,8 @@ struct HfCandidateCreatorDstar {
   Produces<aod::HfProng0PidKa> rowProng0PidKa;
   Produces<aod::HfProng1PidPi> rowProng1PidPi;
   Produces<aod::HfProng1PidKa> rowProng1PidKa;
+  Produces<aod::HfProng2PidPi> rowProngSoftPiPidPi;
+  Produces<aod::HfProng2PidKa> rowProngSoftPiPidKa;
 
   Configurable<bool> fillHistograms{"fillHistograms", true, "fill histograms"};
 
@@ -201,7 +203,7 @@ struct HfCandidateCreatorDstar {
         continue;
       }
 
-      auto trackPi = rowTrackIndexDstar.template prong0_as<aod::TracksWCov>();
+      auto trackPi = rowTrackIndexDstar.template prong0_as<TracksWCovExtraPidPiKa>();
       auto prongD0 = rowTrackIndexDstar.template prongD0_as<aod::Hf2Prongs>();
       auto trackD0Prong0 = prongD0.template prong0_as<TracksWCovExtraPidPiKa>();
       auto trackD0Prong1 = prongD0.template prong1_as<TracksWCovExtraPidPiKa>();
@@ -359,6 +361,9 @@ struct HfCandidateCreatorDstar {
       fillProngPid<HfProngSpecies::Kaon>(trackD0Prong0, rowProng0PidKa);
       fillProngPid<HfProngSpecies::Pion>(trackD0Prong1, rowProng1PidPi);
       fillProngPid<HfProngSpecies::Kaon>(trackD0Prong1, rowProng1PidKa);
+      // fill soft-pion PID rows
+      fillProngPid<HfProngSpecies::Pion>(trackPi, rowProngSoftPiPidPi);
+      fillProngPid<HfProngSpecies::Kaon>(trackPi, rowProngSoftPiPidKa);
 
       if (fillHistograms) {
         registry.fill(HIST("QA/hPtD0"), ptD0);
