@@ -14,7 +14,10 @@
 //
 
 #include "TableHelper.h"
+
 #include "Common/Tools/TrackTuner.h"
+
+#include "TRandom.h"
 
 // The Run 3 AO2D stores the tracks at the point of innermost update. For a track with ITS this is the innermost (or second innermost)
 // ITS layer. For a track without ITS, this is the TPC inner wall or for loopers in the TPC even a radius beyond that.
@@ -133,7 +136,13 @@ struct TrackPropagation {
           break;
       }
 
-      trackTunerObj.getDcaGraphs();
+      // define the tmp directory to be used in case of download of the file from CCDB
+      // random number extracted, to avoid file writing in the same tmp directory
+      gRandom->SetSeed(0);
+      unsigned int n = gRandom->Integer(100000);
+      std::string tmpDirName = std::string("./") + std::to_string(n);
+      LOG(info) << " --> rnd number extracted: " << n;
+      trackTunerObj.getDcaGraphs(tmpDirName);
       trackTunedTracks->SetTitle(outputStringParams.c_str());
       trackTunedTracks->GetXaxis()->SetBinLabel(1, "all tracks");
     }
