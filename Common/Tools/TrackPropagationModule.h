@@ -154,7 +154,14 @@ class TrackPropagationModule
           break;
       }
 
-      trackTunerObj.getDcaGraphs();
+      // define the tmp directory to be used in case of download of the file from CCDB
+      // random number extracted, to avoid file writing in the same tmp directory
+      gRandom->SetSeed(0);
+      unsigned int n = gRandom->Integer(100000);
+      std::string tmpDirName = std::string("./") + std::to_string(n);
+      LOG(info) << " --> rnd number extracted: " << n;
+
+      trackTunerObj.getDcaGraphs(tmpDirName);
     }
 
     trackTunedTracks = registry.template add<TH1>("trackTunedTracks", "trackTunedTracks", o2::framework::kTH1D, {{1, 0.5f, 1.5f}});
