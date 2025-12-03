@@ -203,6 +203,9 @@ struct HfCandidateCreatorSigmac0plusplus {
       /// keep only the candidates flagged as possible Λc+ (and charge conj.) decaying into a charged pion, kaon and proton
       /// if not selected, skip it and go to the next one
       if (!(candLc.hfflag() & BIT(aod::hf_cand_3prong::DecayType::LcToPKPi))) {
+
+//        LOG(info) << ">>> hfflag() non va bene, com'è possibile?!";
+
         continue;
       }
       /// keep only the candidates Λc+ (and charge conj.) within the desired rapidity
@@ -338,6 +341,14 @@ struct HfCandidateCreatorSigmac0plusplus {
     if constexpr (WithTimeAssoc) {
       /// need to group candidates manually
       auto candidatesThisColl = candidates.sliceBy(hf3ProngPerCollision, thisCollId);
+//      LOG(info) << " --> thisCollId (soft pi): " << thisCollId;
+      for(auto& candLc : candidatesThisColl){
+        auto collIdLc = candLc.collisionId();
+//        LOG(info) << "        ==> candLc.collisionId(): " << collIdLc;
+        if(collIdLc != thisCollId) {
+          LOG(fatal) << "           !!! candLc.collisionId() is different fromthisCollId !!! " << collIdLc << " vs. " << thisCollId;
+        }
+      }
       makeSoftPiLcPair(softPiDca, trackSoftPi, candidatesThisColl, tracks);
     } else {
       /// tracks and candidates already grouped by collision at the level of process function
@@ -370,6 +381,7 @@ struct HfCandidateCreatorSigmac0plusplus {
       for (const auto& trackId : trackIdsThisCollision) {
         /// slice soft pion tracks associated to the current collision
         auto trackSoftPi = trackId.track_as<aod::TracksWDcaExtra>();
+//        LOG(info) << "**** trackId.collisionId(): " << trackId.collisionId();
 
         /// create SigmaC candidate with the current soft pion and Lc candidates
         createSigmaC<true>(collision, trackSoftPi, tracks, candidates, bcWithTimeStamps);
@@ -410,7 +422,9 @@ struct HfCandidateCreatorSigmac0plusplus {
 /// Extends the base table with expression columns.
 
 struct HfCandidateSigmac0plusplusMc {
-  Spawns<aod::HfCandScExt> candidatesSigmac;
+  //Spawns<aod::HfCandScExt> candidatesSigmac;
+  Spawns<aod::HfCandScExt> candidatesSigmacSpawned;
+
   Produces<aod::HfCandScMcRec> rowMCMatchScRec;
   Produces<aod::HfCandScMcGen> rowMCMatchScGen;
 
@@ -469,16 +483,17 @@ struct HfCandidateSigmac0plusplusMc {
   /// @param candidatesSigmac reconstructed Σc0,++ candidates
   /// @param mcParticles table of generated particles
   void processMc(McParticlesLcGenMatch const& mcParticles,
-                 aod::TracksWMc const& tracks,
-                 LambdacMc const& candsLc,
                  McCollisionsNoCents const& collInfos,
+                 aod::TracksWMc const&, // tracks,
+                 LambdacMc const&, // candsLc,
+                 aod::HfCandScBase const& candidatesSigmac,
                  aod::McCollisions const&,
                  BCsInfo const&)
   {
 
     // Match reconstructed candidates.
-    candidatesSigmac->bindExternalIndices(&tracks);
-    candidatesSigmac->bindExternalIndices(&candsLc);
+    //candidatesSigmac->bindExternalIndices(&tracks);
+    //candidatesSigmac->bindExternalIndices(&candsLc);
 
     int indexRec = -1;
     int8_t sign = 0;
@@ -487,7 +502,8 @@ struct HfCandidateSigmac0plusplusMc {
     int8_t chargeSigmac = 10;
 
     /// Match reconstructed Σc0,++ candidates
-    for (const auto& candSigmac : *candidatesSigmac) {
+    //for (const auto& candSigmac : *candidatesSigmac) { // needed with Spawn
+    for (const auto& candSigmac : candidatesSigmac) {
       indexRec = -1;
       sign = 0;
       flag = 0;
@@ -522,6 +538,8 @@ struct HfCandidateSigmac0plusplusMc {
         }
         auto particle = mcParticles.rawIteratorAt(indexRec);
         particleAntiparticle = isParticleAntiparticle(particle, Pdg::kSigmaC0);
+
+        /// TODO: check that the reco collision points to the generated collision where the matched MC signal is found !!! (+++)
 
         /// look for Σc0(2520)
         if (flag == 0) {
@@ -567,6 +585,8 @@ struct HfCandidateSigmac0plusplusMc {
       if (flag != 0) {
         auto particle = mcParticles.rawIteratorAt(indexRec);
         origin = RecoDecay::getCharmHadronOrigin(mcParticles, particle, false, &idxBhadMothers);
+
+        /// TODO: check that the origin of the SigmaC is the same of the daughter Lc !!! (+++)
       }
       /// fill the table with results of reconstruction level MC matching
       if (origin == RecoDecay::OriginType::NonPrompt) {
@@ -596,6 +616,9 @@ struct HfCandidateSigmac0plusplusMc {
         rowMCMatchScGen(flag, origin, -1, -1);
         continue;
       }
+
+      /// TODO: CHECK IF THESE EVENT SELECTIONS MAKE SENSE
+
 
       /// 3 levels:
       ///   1. Σc0 → Λc+ π-,+
