@@ -308,21 +308,32 @@ struct HfTaskPidStudies {
   int isMatched(const T1& cand)
   {
     if constexpr (std::is_same<T1, V0sMcRec::iterator>::value) {
+      LOG(info) << "   case std::is_same<T1, V0sMcRec::iterator>::value";
       if (!cand.has_v0MCCore()) {
         return Particle::NotMatched;
       }
       auto v0MC = cand.template v0MCCore_as<aod::V0MCCores>();
+      LOG(info) << "           v0MC obtained";
+      if(!(&v0MC)) return Particle::NotMatched;
+      int pdgCode = v0MC.pdgCode();  LOG(info) << "              pdgCode obtained";
+      int pdgCodeNegative = v0MC.pdgCodeNegative(); LOG(info) << "              pdgCodeNegative obtained";
+      int pdgCodePositive = v0MC.pdgCodePositive(); LOG(info) << "              pdgCodePositive obtained";
       if (v0MC.pdgCode() == kK0Short && v0MC.pdgCodeNegative() == -kPiPlus && v0MC.pdgCodePositive() == kPiPlus) {
+        LOG(info) << "               IT'S A K0S";
         return Particle::K0s;
       }
       if (v0MC.pdgCode() == kLambda0 && v0MC.pdgCodeNegative() == -kPiPlus && v0MC.pdgCodePositive() == kProton) {
+        LOG(info) << "               IT'S A LAMBDA";
         return Particle::Lambda;
       }
       if (v0MC.pdgCode() == -kLambda0 && v0MC.pdgCodeNegative() == -kProton && v0MC.pdgCodePositive() == kPiPlus) {
+        LOG(info) << "               IT'S AN ANTI-LAMBDA";
         return -Particle::Lambda;
       }
+      LOG(info) << "   case std::is_same<T1, V0sMcRec::iterator>::value FINISHED - no result";
     }
     if constexpr (std::is_same<T1, CascsMcRec::iterator>::value) {
+      LOG(info) << "   case std::is_same<T1, CascsMcRec::iterator>::value";
       if (!cand.has_cascMCCore()) {
         return Particle::NotMatched;
       }
@@ -341,6 +352,7 @@ struct HfTaskPidStudies {
           cascMC.pdgCodeNegative() == -kProton) {
         return -Particle::Omega;
       }
+      LOG(info) << "   case std::is_same<T1, CascsMcRec::iterator>::value FINISHED";
     }
     return Particle::NotMatched;
   }
@@ -514,20 +526,30 @@ struct HfTaskPidStudies {
                    PidTracks const& /*tracks*/,
                    aod::BCsWithTimestamps const&)
   {
+    LOG(info) << "[processV0Mc] start";
     for (const auto& v0 : v0s) {
+      LOG(info) << "[processV0Mc] before ev. sel";
       if (applyEvSels && !isCollSelected(v0.collision_as<CollisionsMc>())) {
         continue;
       }
+      LOG(info) << "[processV0Mc] after ev. sel";
       if (applyTrackSels && !isTrackSelected<true>(v0)) {
         continue;
       }
+      LOG(info) << "[processV0Mc] after track sel.";
       if (isSelectedV0AsK0s(v0) || isSelectedV0AsLambda(v0)) {
+        LOG(info) << "[processV0Mc] matching...";
         int const matched = isMatched(v0);
+        LOG(info) << "[processV0Mc] ... matched!";
         if (matched != Particle::NotMatched) {
+          LOG(info) << "[processV0Mc] filling...";
           fillTree<true, CollisionsMc>(v0, matched);
+          LOG(info) << "[processV0Mc] ... filled!";
         }
       }
+      LOG(info) << "[processV0Mc] end loop iteration";
     }
+    LOG(info) << "[processV0Mc] THE END";
   }
   PROCESS_SWITCH(HfTaskPidStudies, processV0Mc, "Process MC", true);
 
